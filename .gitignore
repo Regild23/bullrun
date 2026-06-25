@@ -1,0 +1,14 @@
+# ============================================================
+#  File da NON caricare su GitHub
+# ============================================================
+#  Git "ignora" tutto quello che elenchiamo qui sotto:
+#  sono file che si creano da soli o che servono solo a noi.
+
+# File di sistema di macOS (inutile su GitHub)
+.DS_Store
+
+# Cartella degli strumenti locali (anteprima di Claude Code)
+.claude/
+
+# Dipendenze di Node, se un domani le useremo
+node_modules/

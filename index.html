@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BullRun - Il gioco degli investimenti 📈
+  ============================================================
+  Questo è il file HTML: descrive la STRUTTURA della pagina,
+  cioè QUALI cose ci sono (titoli, numeri, bottoni, grafico).
+
+  Pensa all'HTML come allo scheletro di una persona:
+  decide dove vanno le ossa, ma non il colore della pelle
+  (quello lo decide il CSS) né come si muove (quello il JavaScript).
+-->
+<html lang="it">
+
+<head>
+  <!-- Indica al browser che usiamo le lettere italiane (à, è, é...) -->
+  <meta charset="UTF-8">
+  <!-- Fa funzionare bene la pagina anche sul cellulare -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>BullRun 📈 — Il gioco degli investimenti</title>
+
+  <!-- Colleghiamo il file con i colori e lo stile -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ===== TESTATA (in alto) ===== -->
+  <header class="testata">
+    <h1>📈 BullRun</h1>
+    <p class="sottotitolo">Investi i tuoi €10.000 e fai crescere il patrimonio!</p>
+  </header>
+
+  <!-- ===== CONTENUTO PRINCIPALE ===== -->
+  <main class="contenuto">
+
+    <!-- ===== LE 4 CARTE CON I NUMERI ===== -->
+    <section class="riga-carte">
+
+      <!-- Carta 1: il patrimonio totale (la cosa più importante!) -->
+      <div class="carta carta-grande">
+        <span class="etichetta">Patrimonio Totale</span>
+        <!-- Questo numero verrà riempito dal JavaScript -->
+        <span class="numero-grande" id="patrimonio">€10.000</span>
+      </div>
+
+      <!-- Carta 2: i soldi liberi, non ancora investiti -->
+      <div class="carta">
+        <span class="etichetta">💵 Liquidità</span>
+        <span class="numero" id="liquidita">€10.000</span>
+      </div>
+
+      <!-- Carta 3: i soldi messi dentro l'ETF -->
+      <div class="carta">
+        <span class="etichetta">📊 Investito in ETF</span>
+        <span class="numero" id="valore-etf">€0</span>
+      </div>
+
+      <!-- Carta 4: a che mese siamo arrivati -->
+      <div class="carta">
+        <span class="etichetta">🗓️ Mese</span>
+        <span class="numero" id="mese">0</span>
+      </div>
+
+    </section>
+
+    <!-- ===== IL GRAFICO ===== -->
+    <section class="carta carta-grafico">
+      <span class="etichetta">Andamento del patrimonio</span>
+      <!-- Chart.js disegnerà il grafico dentro questa "tela" (canvas) -->
+      <canvas id="grafico"></canvas>
+    </section>
+
+    <!-- ===== I COMANDI (bottoni) ===== -->
+    <section class="carta carta-comandi">
+
+      <!-- Riga per investire nell'ETF -->
+      <div class="gruppo-comando">
+        <label for="campo-importo">Quanto vuoi investire nell'ETF S&amp;P500?</label>
+        <div class="riga-investi">
+          <!-- Qui l'utente scrive quanti euro investire -->
+          <input type="number" id="campo-importo" placeholder="es. 5000" min="0" step="100">
+          <button id="bottone-investi" class="bottone bottone-verde">Investi in ETF</button>
+        </div>
+      </div>
+
+      <!-- Bottone per far passare un mese -->
+      <button id="bottone-avanza" class="bottone bottone-blu">⏭️ Avanza Mese</button>
+
+    </section>
+
+    <!-- ===== AREA MESSAGGI (cosa è successo) ===== -->
+    <section class="messaggio" id="messaggio">
+      Benvenuto! Investi una parte dei tuoi €10.000 nell'ETF, poi premi "Avanza Mese" per vedere come va il mercato. 🚀
+    </section>
+
+  </main>
+
+  <!--
+    Carichiamo la libreria Chart.js (serve internet la prima volta).
+    Una "libreria" è codice già scritto da altri che possiamo usare:
+    in questo caso serve a disegnare grafici belli senza fatica.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Carichiamo il NOSTRO codice. Va messo per ultimo! -->
+  <script src="script.js"></script>
+
+</body>
+
+</html>

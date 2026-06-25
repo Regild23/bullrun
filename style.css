@@ -1,0 +1,228 @@
+/* ============================================================
+   BullRun - Foglio di stile (CSS)
+   ============================================================
+   Il CSS decide COM'È FATTA la pagina: colori, dimensioni,
+   spazi, bordi. Se l'HTML è lo scheletro, il CSS è il vestito.
+
+   Ogni regola funziona così:
+     cosa-voglio-colorare {
+        proprietà: valore;
+     }
+*/
+
+/* --- I COLORI DEL GIOCO ---
+   Qui diamo un nome ai nostri colori, così se vogliamo cambiarli
+   basta cambiarli in un punto solo. Si chiamano "variabili CSS". */
+:root {
+  --sfondo: #0f1424;          /* blu notte, lo sfondo */
+  --carta: #1a2138;           /* le carte un po' più chiare */
+  --bordo: #2a3352;           /* il bordo delle carte */
+  --testo: #e8ecf5;           /* il testo chiaro */
+  --testo-spento: #8b95b0;    /* testo grigio per le etichette */
+  --verde: #16c784;           /* verde = soldi e guadagni */
+  --rosso: #ea3943;           /* rosso = perdite */
+  --blu: #3b82f6;             /* blu = bottone "avanza mese" */
+}
+
+/* L'asterisco (*) vuol dire "TUTTI gli elementi della pagina".
+   Azzeriamo i margini di default per partire puliti. */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;     /* rende più facile gestire le dimensioni */
+}
+
+/* Lo sfondo e il testo di tutta la pagina */
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--sfondo);
+  color: var(--testo);
+  min-height: 100vh;          /* alta almeno quanto lo schermo */
+  padding: 20px;
+}
+
+/* --- TESTATA --- */
+.testata {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.testata h1 {
+  font-size: 42px;
+  margin-bottom: 4px;
+}
+
+.sottotitolo {
+  color: var(--testo-spento);
+  font-size: 16px;
+}
+
+/* Contenitore centrale: non più largo di 800px e centrato */
+.contenuto {
+  max-width: 800px;
+  margin: 0 auto;             /* "auto" ai lati = centrato */
+  display: flex;
+  flex-direction: column;     /* mette gli elementi uno sotto l'altro */
+  gap: 16px;                  /* spazio tra un blocco e l'altro */
+}
+
+/* --- LE CARTE --- */
+.carta {
+  background: var(--carta);
+  border: 1px solid var(--bordo);
+  border-radius: 14px;        /* angoli arrotondati */
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* L'etichetta piccola sopra ogni numero */
+.etichetta {
+  color: var(--testo-spento);
+  font-size: 13px;
+  text-transform: uppercase;  /* TUTTO MAIUSCOLO */
+  letter-spacing: 0.5px;
+}
+
+/* I numeri normali */
+.numero {
+  font-size: 26px;
+  font-weight: 700;           /* grassetto */
+}
+
+/* Il numero grande del patrimonio totale */
+.numero-grande {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--verde);
+}
+
+/* --- LA RIGA CON LE 4 CARTE ---
+   "grid" crea una griglia. Mettiamo 2 carte per riga. */
+.riga-carte {
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* due colonne uguali */
+  gap: 16px;
+}
+
+/* La carta del patrimonio occupa tutte e due le colonne (è più importante) */
+.carta-grande {
+  grid-column: 1 / -1;        /* dall'inizio alla fine della riga */
+  align-items: center;
+  text-align: center;
+}
+
+/* --- LA CARTA DEL GRAFICO --- */
+.carta-grafico {
+  min-height: 280px;
+}
+
+/* --- I COMANDI --- */
+.carta-comandi {
+  gap: 16px;
+}
+
+.gruppo-comando {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gruppo-comando label {
+  color: var(--testo-spento);
+  font-size: 14px;
+}
+
+/* La riga con la casella di testo + il bottone "Investi" */
+.riga-investi {
+  display: flex;
+  gap: 10px;
+}
+
+/* La casella dove si scrive l'importo */
+#campo-importo {
+  flex: 1;                    /* prende tutto lo spazio disponibile */
+  background: var(--sfondo);
+  border: 1px solid var(--bordo);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--testo);
+  font-size: 16px;
+}
+
+#campo-importo:focus {
+  outline: none;
+  border-color: var(--verde); /* bordo verde quando ci clicchi dentro */
+}
+
+/* --- I BOTTONI --- */
+.bottone {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;            /* il dito quando ci passi sopra */
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+/* Quando passi il mouse sopra, il bottone si illumina un po' */
+.bottone:hover {
+  opacity: 0.9;
+}
+
+/* Quando lo premi, si rimpicciolisce un attimo (effetto "click") */
+.bottone:active {
+  transform: scale(0.97);
+}
+
+.bottone-verde {
+  background: var(--verde);
+}
+
+.bottone-blu {
+  background: var(--blu);
+  width: 100%;                /* largo quanto tutta la carta */
+  padding: 16px;
+  font-size: 18px;
+}
+
+/* --- AREA MESSAGGI --- */
+.messaggio {
+  background: var(--carta);
+  border: 1px solid var(--bordo);
+  border-left: 4px solid var(--blu);   /* riga colorata a sinistra */
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Queste due classi le aggiunge il JavaScript per colorare i messaggi:
+   verde quando guadagniamo, rosso quando perdiamo. */
+.messaggio.positivo {
+  border-left-color: var(--verde);
+}
+
+.messaggio.negativo {
+  border-left-color: var(--rosso);
+}
+
+/* --- TELEFONO ---
+   Se lo schermo è stretto (cellulare), mettiamo le carte
+   una sotto l'altra e rimpiccioliamo qualche scritta. */
+@media (max-width: 540px) {
+  .riga-carte {
+    grid-template-columns: 1fr;   /* una sola colonna */
+  }
+
+  .numero-grande {
+    font-size: 32px;
+  }
+
+  .riga-investi {
+    flex-direction: column;       /* casella e bottone uno sopra l'altro */
+  }
+}
