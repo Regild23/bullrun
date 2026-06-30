@@ -1,0 +1,19 @@
+<!-- @dsCard group="Colors" viewport="700x140" name="Finance semantics" subtitle="Up / down / warning / info" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--br-bg);padding:20px;font-family:var(--font-body)}
+  .row{display:flex;gap:12px}
+  .sw{flex:1;border-radius:var(--radius-md);padding:14px;border:1px solid var(--br-line)}
+  .top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .name{font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--br-text)}
+  .hex{font-family:var(--font-mono);font-size:10px;color:var(--br-text-dim)}
+</style></head>
+<body>
+  <div class="row">
+    <div class="sw" style="background:var(--br-up-soft)"><div class="top"><span class="dot" style="background:var(--br-up);box-shadow:0 0 8px var(--br-up)"></span><span class="name" style="color:var(--br-up)">Profitto ▴</span></div><span class="hex">#6EE787 · --br-up</span></div>
+    <div class="sw" style="background:var(--br-down-soft)"><div class="top"><span class="dot" style="background:var(--br-down);box-shadow:0 0 8px var(--br-down)"></span><span class="name" style="color:var(--br-down)">Perdita ▾</span></div><span class="hex">#FF5C7A · --br-down</span></div>
+    <div class="sw" style="background:var(--br-warn-soft)"><div class="top"><span class="dot" style="background:var(--br-warn);box-shadow:0 0 8px var(--br-warn)"></span><span class="name" style="color:var(--br-warn)">Evento</span></div><span class="hex">#FFC24B · --br-warn</span></div>
+    <div class="sw" style="background:rgba(37,228,212,.1)"><div class="top"><span class="dot" style="background:var(--br-info);box-shadow:0 0 8px var(--br-info)"></span><span class="name" style="color:var(--br-info)">Info</span></div><span class="hex">#25E4D4 · --br-info</span></div>
+  </div>
+</body></html>

@@ -12,3 +12,13 @@
 
 # Dipendenze di Node, se un domani le useremo
 node_modules/
+
+# === SEGRETI: non devono MAI finire su GitHub! ===
+# Il token di Vercel e qualunque file con password/chiavi.
+vercel-token.txt
+.vercel-token
+.env
+.env.*
+
+# Cartella di lavoro della CLI di Vercel (ID progetto, ecc.)
+.vercel/

@@ -1,0 +1,20 @@
+<!-- @dsCard group="Colors" viewport="700x160" name="Asset-class accents" subtitle="One neon per game module" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--br-bg);padding:20px;font-family:var(--font-body)}
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .cell{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+  .dot{width:46px;height:46px;border-radius:14px}
+  .lab{font-family:var(--font-display);font-weight:600;font-size:12px;color:var(--br-text)}
+  .var{font-family:var(--font-mono);font-size:9px;color:var(--br-text-dim)}
+</style></head>
+<body>
+  <div class="grid">
+    <div class="cell"><div class="dot" style="background:var(--br-cash);box-shadow:0 0 18px -2px var(--br-cash)"></div><span class="lab">Liquidità</span><span class="var">--br-cash</span></div>
+    <div class="cell"><div class="dot" style="background:var(--br-bond);box-shadow:0 0 18px -2px var(--br-bond)"></div><span class="lab">BTP</span><span class="var">--br-bond</span></div>
+    <div class="cell"><div class="dot" style="background:var(--br-etf);box-shadow:0 0 18px -2px var(--br-etf)"></div><span class="lab">ETF</span><span class="var">--br-etf</span></div>
+    <div class="cell"><div class="dot" style="background:var(--br-stock);box-shadow:0 0 18px -2px var(--br-stock)"></div><span class="lab">Azioni</span><span class="var">--br-stock</span></div>
+    <div class="cell"><div class="dot" style="background:var(--br-crypto);box-shadow:0 0 18px -2px var(--br-crypto)"></div><span class="lab">Crypto</span><span class="var">--br-crypto</span></div>
+    <div class="cell"><div class="dot" style="background:var(--br-realestate);box-shadow:0 0 18px -2px var(--br-realestate)"></div><span class="lab">Immobili</span><span class="var">--br-realestate</span></div>
+  </div>
+</body></html>

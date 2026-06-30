@@ -1,0 +1,70 @@
+/* ============================================================
+   BullRun — Color tokens
+   Derived from the bull mascot: lime→cyan gradient, lavender horns,
+   on a deep near-black GameFi canvas.
+   ============================================================ */
+:root {
+  /* --- Brand neons (raw) --- */
+  --br-green: #B6F23C;        /* lime / chartreuse — primary */
+  --br-green-bright: #C8FB6B; /* lit face highlight */
+  --br-green-deep: #8FD320;   /* pressed / shadow side */
+  --br-teal: #25E4D4;         /* cyan — secondary */
+  --br-teal-bright: #7FF9E4;  /* lit teal highlight */
+  --br-teal-deep: #12B8AE;    /* pressed */
+  --br-purple: #C7A1F5;       /* lavender horns — tertiary */
+  --br-purple-bright: #E0CBFF;
+  --br-purple-deep: #9F73E8;
+
+  /* --- Signature gradient (lime → cyan, the bull's body) --- */
+  --br-gradient: linear-gradient(135deg, var(--br-green) 0%, var(--br-teal) 100%);
+  --br-gradient-soft: linear-gradient(135deg, #B6F23C22 0%, #25E4D422 100%); /* @kind color */
+  --br-gradient-tri: linear-gradient(120deg, var(--br-green) 0%, var(--br-teal) 55%, var(--br-purple) 100%);
+
+  /* --- Canvas / surfaces (dark) --- */
+  --br-bg: #0A0E14;           /* base app background */
+  --br-bg-2: #0D131D;         /* secondary band */
+  --br-surface: #131B28;      /* card */
+  --br-surface-2: #1A2433;    /* elevated card / hover */
+  --br-surface-3: #232F41;    /* inputs, wells */
+
+  /* --- Lines & borders --- */
+  --br-line: rgba(255,255,255,0.08);
+  --br-line-strong: rgba(255,255,255,0.16);
+  --br-line-neon: rgba(37,228,212,0.35);
+
+  /* --- Text --- */
+  --br-text: #EAF2F6;         /* primary */
+  --br-text-muted: #93A2B3;   /* secondary */
+  --br-text-dim: #5C6A7B;     /* tertiary / captions */
+  --br-ink: #062018;          /* dark text on neon fills */
+
+  /* --- Finance semantics --- */
+  --br-up: #6EE787;           /* profit / market up */
+  --br-up-soft: rgba(110,231,135,0.14);
+  --br-down: #FF5C7A;         /* loss / market down */
+  --br-down-soft: rgba(255,92,122,0.14);
+  --br-warn: #FFC24B;         /* caution / event */
+  --br-warn-soft: rgba(255,194,75,0.14);
+  --br-info: var(--br-teal);
+
+  /* --- Asset-class accents (6 game modules) --- */
+  --br-cash: #7FF9E4;         /* Liquidità */
+  --br-bond: #8FB4FF;         /* BTP */
+  --br-etf: #B6F23C;          /* ETF */
+  --br-stock: #25E4D4;        /* Azioni */
+  --br-crypto: #C7A1F5;       /* Crypto */
+  --br-realestate: #FFC24B;   /* Immobili */
+
+  /* ===== Semantic aliases ===== */
+  --surface-app: var(--br-bg);
+  --surface-card: var(--br-surface);
+  --surface-raised: var(--br-surface-2);
+  --surface-input: var(--br-surface-3);
+  --text-strong: var(--br-text);
+  --text-body: var(--br-text-muted);
+  --text-faint: var(--br-text-dim);
+  --accent: var(--br-green);
+  --accent-2: var(--br-teal);
+  --border: var(--br-line);
+  --border-strong: var(--br-line-strong);
+}

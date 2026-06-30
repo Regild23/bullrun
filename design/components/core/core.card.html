@@ -1,0 +1,57 @@
+<!-- @dsCard group="Components" viewport="700x440" name="Core" subtitle="Button · Badge · Input · Tabs · Avatar · Stat · Card" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>
+  body{margin:0;background:var(--br-bg);padding:24px;font-family:var(--font-body)}
+  .sec{margin-bottom:22px}
+  .h{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--br-text-dim);margin-bottom:12px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  [data-lucide]{width:18px;height:18px}
+</style></head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script src="../../_ds_bundle.js"></script>
+  <script type="text/babel">
+    const NS = window.BullRunDesignSystem_5f2728;
+    const { Button, IconButton, Badge, Input, Tabs, Avatar, Stat, Card } = NS;
+    const I = (n, p={}) => <i data-lucide={n} {...p}></i>;
+    function Demo(){
+      const [t,setT] = React.useState('Mese');
+      React.useEffect(()=>{ window.lucide && lucide.createIcons(); });
+      return (
+        <div>
+          <div className="sec"><div className="h">Buttons</div><div className="row">
+            <Button variant="primary" iconRight={I('play')}>Inizia a giocare</Button>
+            <Button variant="secondary">Accedi</Button>
+            <Button variant="ghost">Contattaci</Button>
+            <Button variant="neonOutline">Avanza mese</Button>
+            <Button variant="primary" size="sm">Small</Button>
+            <Button variant="secondary" disabled>Disabled</Button>
+            <IconButton label="Notifiche" variant="surface">{I('bell')}</IconButton>
+          </div></div>
+          <div className="sec"><div className="h">Badges</div><div className="row">
+            <Badge tone="up" dot>+4.2%</Badge>
+            <Badge tone="down" dot>-1.8%</Badge>
+            <Badge tone="warn">Evento</Badge>
+            <Badge tone="purple">Crypto</Badge>
+            <Badge tone="teal">Livello 7</Badge>
+            <Badge tone="neutral" soft={false}>Beta</Badge>
+          </div></div>
+          <div className="sec"><div className="h">Input · Tabs</div><div className="row">
+            <div style={{width:240}}><Input placeholder="La tua email" iconLeft={I('mail')}/></div>
+            <Tabs tabs={['Mese','Anno','Tutto']} value={t} onChange={setT}/>
+          </div></div>
+          <div className="sec"><div className="h">Avatar · Stat · Card</div><div className="row">
+            <Avatar initials="LM" size={56} level={7}/>
+            <Card glow="teal" style={{padding:'14px 20px'}}><Stat label="Patrimonio" value="€ 12.480" delta="+4.2%"/></Card>
+            <Card accent="var(--br-crypto)" interactive style={{padding:'14px 20px',minWidth:160}}><Stat label="Crypto" value="€ 2.150" delta="+6.4%" size="sm"/></Card>
+          </div></div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+  </script>
+</body></html>

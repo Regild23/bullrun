@@ -1,0 +1,11 @@
+/* ============================================================
+   BullRun — Webfonts
+   SUBSTITUTION NOTE: served from Google Fonts CDN (binaries could
+   not be fetched into the project). Swap these @import lines for
+   local @font-face + .woff2 files when the real licensed files
+   are available.
+     • Space Grotesk  → display / headings / big numbers
+     • DM Sans        → UI body text
+     • JetBrains Mono → prices, tickers, tabular financial data
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap');

@@ -1,0 +1,154 @@
+/* ============================================================
+   BullRun · TOKEN del design system
+   ------------------------------------------------------------
+   Qui ci sono i "mattoncini" del design: colori, font, spaziature,
+   raggi degli angoli, ombre e bagliori (glow). Sono tutti scritti
+   come "variabili CSS" (cominciano con --br-...): così se vogliamo
+   cambiare un colore, lo cambiamo qui in un punto solo.
+   (Valori presi dal design system fornito dal designer.)
+   ============================================================ */
+
+/* I font del brand, presi da Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* --- Colori neon del brand --- */
+  --br-green: #B6F23C;          /* lime — colore principale */
+  --br-green-bright: #C8FB6B;
+  --br-green-deep: #8FD320;
+  --br-teal: #25E4D4;           /* ciano — secondario */
+  --br-teal-bright: #7FF9E4;
+  --br-teal-deep: #12B8AE;
+  --br-purple: #C7A1F5;         /* lavanda (le corna) — terziario */
+  --br-purple-bright: #E0CBFF;
+  --br-purple-deep: #9F73E8;
+
+  /* Gradiente "firma": lime → ciano (il corpo del toro) */
+  --br-gradient: linear-gradient(135deg, var(--br-green) 0%, var(--br-teal) 100%);
+  --br-gradient-soft: linear-gradient(135deg, #B6F23C22 0%, #25E4D422 100%);
+  --br-gradient-tri: linear-gradient(120deg, var(--br-green) 0%, var(--br-teal) 55%, var(--br-purple) 100%);
+
+  /* --- Sfondi e superfici (scure) --- */
+  --br-bg: #0A0E14;             /* sfondo dell'app */
+  --br-bg-2: #0D131D;
+  --br-surface: #131B28;        /* le carte */
+  --br-surface-2: #1A2433;      /* carte sollevate / hover */
+  --br-surface-3: #232F41;      /* caselle di testo */
+
+  /* --- Linee e bordi --- */
+  --br-line: rgba(255,255,255,0.08);
+  --br-line-strong: rgba(255,255,255,0.16);
+  --br-line-neon: rgba(37,228,212,0.35);
+
+  /* --- Testo --- */
+  --br-text: #EAF2F6;           /* principale */
+  --br-text-muted: #93A2B3;     /* secondario */
+  --br-text-dim: #5C6A7B;       /* didascalie */
+  --br-ink: #062018;            /* testo scuro sopra i neon */
+
+  /* --- Colori "finanza" --- */
+  --br-up: #6EE787;             /* guadagno / mercato su */
+  --br-up-soft: rgba(110,231,135,0.14);
+  --br-down: #FF5C7A;           /* perdita / mercato giù */
+  --br-down-soft: rgba(255,92,122,0.14);
+  --br-warn: #FFC24B;           /* attenzione / evento */
+  --br-warn-soft: rgba(255,194,75,0.14);
+
+  /* --- Un colore per ogni asset (i 6 moduli del gioco) --- */
+  --br-cash: #7FF9E4;           /* Liquidità */
+  --br-bond: #8FB4FF;           /* BTP */
+  --br-etf: #B6F23C;            /* ETF */
+  --br-stock: #25E4D4;          /* Azioni */
+  --br-crypto: #C7A1F5;         /* Crypto */
+  --br-realestate: #FFC24B;     /* Immobili */
+
+  /* --- Font --- */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;  /* titoli e numeri */
+  --font-body: 'DM Sans', system-ui, sans-serif;           /* testo */
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;  /* prezzi e dati */
+
+  /* --- Raggi degli angoli (arrotondati e simpatici) --- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --radius-card: var(--radius-lg);
+
+  /* --- Ombre (per dare profondità sul fondo scuro) --- */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.45);
+  --shadow-lg: 0 18px 48px rgba(0,0,0,0.55);
+
+  /* --- Bagliori neon (l'effetto "firma" — da usare con parsimonia) --- */
+  --glow-green: 0 0 0 1px rgba(182,242,60,0.45), 0 0 22px rgba(182,242,60,0.35);
+  --glow-teal: 0 0 0 1px rgba(37,228,212,0.5), 0 0 24px rgba(37,228,212,0.40);
+  --glow-purple: 0 0 0 1px rgba(199,161,245,0.5), 0 0 24px rgba(199,161,245,0.38);
+  --glow-soft-teal: 0 0 36px rgba(37,228,212,0.22);
+  --glow-soft-green: 0 0 36px rgba(182,242,60,0.22);
+  --glow-text-teal: 0 0 18px rgba(37,228,212,0.45);
+  --glow-text-green: 0 0 18px rgba(182,242,60,0.45);
+
+  /* Vetro (per nav e pannelli che "galleggiano") */
+  --glass-bg: rgba(10,14,20,0.72);
+
+  /* --- Movimento (animazioni rapide e giocose) --- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+
+  /* Larghezza massima del contenuto */
+  --container: 1200px;
+}
+
+/* ============================================================
+   Reset di base + aiutanti
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--br-bg);
+  color: var(--br-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* I numeri usano il font "mono" con cifre tutte della stessa larghezza */
+.br-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* "Eyebrow": l'etichettina maiuscola sopra ai titoli */
+.br-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--br-teal);
+}
+
+/* Testo con il gradiente lime → ciano */
+.br-gradient-text {
+  background: var(--br-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+::selection { background: rgba(37,228,212,0.3); color: #fff; }
+
+/* Sfondo a puntini leggeri per le schermate di gioco */
+.br-grid-bg {
+  background-color: var(--br-bg);
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

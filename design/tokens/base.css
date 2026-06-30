@@ -1,0 +1,44 @@
+/* ============================================================
+   BullRun — base resets & helpers (kept minimal)
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--br-bg);
+  color: var(--br-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Mono numerals get tabular figures by default */
+.br-mono, [data-mono] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Eyebrow / label utility */
+.br-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--br-teal);
+}
+
+/* Gradient text helper (lime → cyan) */
+.br-gradient-text {
+  background: var(--br-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+::selection { background: rgba(37,228,212,0.3); color: #fff; }
+
+/* Subtle dotted grid backdrop for game surfaces */
+.br-grid-bg {
+  background-color: var(--br-bg);
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}

@@ -1,0 +1,28 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Surfaces & text" subtitle="Dark canvas layers and text shades" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;background:var(--br-bg);padding:20px;font-family:var(--font-body)}
+  .wrap{display:flex;gap:12px}
+  .col{flex:1}
+  .stack{display:flex;flex-direction:column;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--br-line)}
+  .lay{padding:10px 12px;font-family:var(--font-mono);font-size:10px;color:var(--br-text-muted)}
+  .txt{display:flex;flex-direction:column;gap:8px}
+  .t{font-family:var(--font-display);font-weight:600;font-size:15px}
+  .tv{font-family:var(--font-mono);font-size:10px;color:var(--br-text-dim);font-weight:400}
+</style></head>
+<body>
+  <div class="wrap">
+    <div class="col"><div class="stack">
+      <div class="lay" style="background:var(--br-bg)">--br-bg · canvas</div>
+      <div class="lay" style="background:var(--br-surface)">--br-surface · card</div>
+      <div class="lay" style="background:var(--br-surface-2)">--br-surface-2 · raised</div>
+      <div class="lay" style="background:var(--br-surface-3)">--br-surface-3 · input</div>
+    </div></div>
+    <div class="col"><div class="txt">
+      <span class="t" style="color:var(--br-text)">Testo primario <span class="tv">--br-text</span></span>
+      <span class="t" style="color:var(--br-text-muted)">Testo secondario <span class="tv">--br-text-muted</span></span>
+      <span class="t" style="color:var(--br-text-dim)">Testo terziario <span class="tv">--br-text-dim</span></span>
+      <span class="t" style="color:var(--br-ink);background:var(--br-green);border-radius:6px;padding:2px 8px;align-self:flex-start">Su neon <span class="tv" style="color:var(--br-ink);opacity:.6">--br-ink</span></span>
+    </div></div>
+  </div>
+</body></html>

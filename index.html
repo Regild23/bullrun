@@ -1,112 +1,281 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  BullRun - Il gioco degli investimenti 📈
+  BullRun · Landing page (pagina principale)
   ============================================================
-  Questo è il file HTML: descrive la STRUTTURA della pagina,
-  cioè QUALI cose ci sono (titoli, numeri, bottoni, grafico).
-
-  Pensa all'HTML come allo scheletro di una persona:
-  decide dove vanno le ossa, ma non il colore della pelle
-  (quello lo decide il CSS) né come si muove (quello il JavaScript).
+  Pagina di presentazione a scorrimento. Ricostruita dal design
+  system del brand. Usa i file css/tokens.css e css/site.css.
+  Le icone sono di "Lucide" (caricate da internet).
 -->
 <html lang="it">
-
 <head>
-  <!-- Indica al browser che usiamo le lettere italiane (à, è, é...) -->
   <meta charset="UTF-8">
-  <!-- Fa funzionare bene la pagina anche sul cellulare -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>BullRun 📈 — Il gioco degli investimenti</title>
-
-  <!-- Colleghiamo il file con i colori e lo stile -->
-  <link rel="stylesheet" href="style.css">
+  <title>BullRun · Impara a investire, senza rischiare un euro</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
 </head>
+<body class="br-grid-bg">
 
-<body>
-
-  <!-- ===== TESTATA (in alto) ===== -->
-  <header class="testata">
-    <h1>📈 BullRun</h1>
-    <p class="sottotitolo">Investi i tuoi €10.000 e fai crescere il patrimonio!</p>
+  <!-- ===== BARRA IN ALTO ===== -->
+  <header class="nav">
+    <a class="nav__brand" href="#top">
+      <img src="assets/logo.png" alt="BullRun">
+      <span class="nav__name"><span class="br-gradient-text">Bull</span>Run</span>
+    </a>
+    <div class="nav__links">
+      <nav class="nav__menu">
+        <a href="#come">Come funziona</a>
+        <a href="#investimenti">Investimenti</a>
+        <a href="#scuole">Per le scuole</a>
+      </nav>
+      <div class="nav__actions">
+        <a href="login.html"><button class="btn btn--ghost btn--sm">Accedi</button></a>
+        <a class="nav__contact" href="#contatti">Contattaci</a>
+        <a href="login.html"><button class="btn btn--primary btn--sm">Iscriviti</button></a>
+      </div>
+    </div>
   </header>
 
-  <!-- ===== CONTENUTO PRINCIPALE ===== -->
-  <main class="contenuto">
-
-    <!-- ===== LE 4 CARTE CON I NUMERI ===== -->
-    <section class="riga-carte">
-
-      <!-- Carta 1: il patrimonio totale (la cosa più importante!) -->
-      <div class="carta carta-grande">
-        <span class="etichetta">Patrimonio Totale</span>
-        <!-- Questo numero verrà riempito dal JavaScript -->
-        <span class="numero-grande" id="patrimonio">€10.000</span>
-      </div>
-
-      <!-- Carta 2: i soldi liberi, non ancora investiti -->
-      <div class="carta">
-        <span class="etichetta">💵 Liquidità</span>
-        <span class="numero" id="liquidita">€10.000</span>
-      </div>
-
-      <!-- Carta 3: i soldi messi dentro l'ETF -->
-      <div class="carta">
-        <span class="etichetta">📊 Investito in ETF</span>
-        <span class="numero" id="valore-etf">€0</span>
-      </div>
-
-      <!-- Carta 4: a che mese siamo arrivati -->
-      <div class="carta">
-        <span class="etichetta">🗓️ Mese</span>
-        <span class="numero" id="mese">0</span>
-      </div>
-
-    </section>
-
-    <!-- ===== IL GRAFICO ===== -->
-    <section class="carta carta-grafico">
-      <span class="etichetta">Andamento del patrimonio</span>
-      <!-- Chart.js disegnerà il grafico dentro questa "tela" (canvas) -->
-      <canvas id="grafico"></canvas>
-    </section>
-
-    <!-- ===== I COMANDI (bottoni) ===== -->
-    <section class="carta carta-comandi">
-
-      <!-- Riga per investire nell'ETF -->
-      <div class="gruppo-comando">
-        <label for="campo-importo">Quanto vuoi investire nell'ETF S&amp;P500?</label>
-        <div class="riga-investi">
-          <!-- Qui l'utente scrive quanti euro investire -->
-          <input type="number" id="campo-importo" placeholder="es. 5000" min="0" step="100">
-          <button id="bottone-investi" class="bottone bottone-verde">Investi in ETF</button>
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="top">
+    <span class="hero__glow hero__glow--a"></span>
+    <span class="hero__glow hero__glow--b"></span>
+    <div class="hero__grid">
+      <div>
+        <span class="hero__pill">
+          <span class="dot"></span>
+          <span class="br-eyebrow">Finanza ed economia · scuole medie</span>
+        </span>
+        <h1 class="hero__title">Impara a investire.<br><span class="br-gradient-text">Senza rischiare un euro.</span></h1>
+        <p class="hero__sub">BullRun è il gioco dove gestisci un portafoglio virtuale, superi gli eventi del mercato e diventi più bravo con i soldi — un mese alla volta.</p>
+        <div class="hero__cta">
+          <a href="login.html"><button class="btn btn--primary btn--lg">Inizia a giocare <i data-lucide="arrow-right"></i></button></a>
+          <button class="btn btn--secondary btn--lg"><i data-lucide="play"></i> Guarda come funziona</button>
+        </div>
+        <div class="hero__stats">
+          <div class="hero__stat"><div class="n br-mono">12.400+</div><div class="l">studenti in gioco</div></div>
+          <div class="hero__stat"><div class="n br-mono">6</div><div class="l">classi di asset</div></div>
+          <div class="hero__stat"><div class="n br-mono">0 €</div><div class="l">soldi reali a rischio</div></div>
         </div>
       </div>
 
-      <!-- Bottone per far passare un mese -->
-      <button id="bottone-avanza" class="bottone bottone-blu">⏭️ Avanza Mese</button>
+      <!-- Anteprima dashboard nell'hero -->
+      <div class="hero__preview">
+        <img class="float-logo" src="assets/logo.png" alt="">
+        <div class="card card--glow-teal">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+            <div class="stat">
+              <span class="stat__label">Patrimonio totale</span>
+              <div class="stat__row">
+                <span class="stat__value stat__value--xl stat__value--glow">€ 12.480</span>
+                <span class="stat__delta"><span>▴</span>+4.2%</span>
+              </div>
+            </div>
+            <span class="badge"><span class="badge__dot"></span>Mese 7</span>
+          </div>
+          <!-- mini grafico -->
+          <svg class="sparkline" viewBox="0 0 360 120" preserveAspectRatio="none">
+            <defs>
+              <filter id="sg"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <linearGradient id="sf" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="rgba(37,228,212,0.28)"/><stop offset="1" stop-color="rgba(37,228,212,0)"/>
+              </linearGradient>
+            </defs>
+            <polygon fill="url(#sf)" points="0,106 36,99 72,108 108,86 144,75 180,89 216,61 252,51 288,58 324,28 360,16 360,120 0,120"/>
+            <polyline fill="none" stroke="var(--br-teal)" stroke-width="2.5" filter="url(#sg)"
+              points="0,106 36,99 72,108 108,86 144,75 180,89 216,61 252,51 288,58 324,28 360,16"/>
+          </svg>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px;">
+            <div class="asset asset--selected" style="--acc:var(--br-crypto)">
+              <div class="asset__top">
+                <span class="asset__icon"><i data-lucide="bitcoin"></i></span>
+                <span class="asset__delta">▴ +6.4%</span>
+              </div>
+              <div><div class="asset__name">Crypto</div><div class="asset__value">€ 2.150</div></div>
+            </div>
+            <div class="asset" style="--acc:var(--br-etf)">
+              <div class="asset__top">
+                <span class="asset__icon"><i data-lucide="layers"></i></span>
+                <span class="asset__delta">▴ +1.2%</span>
+              </div>
+              <div><div class="asset__name">ETF</div><div class="asset__value">€ 3.400</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    </section>
+  <!-- ===== COME FUNZIONA ===== -->
+  <section class="section" id="come">
+    <div class="section__inner">
+      <div class="section__head">
+        <span class="br-eyebrow">Come funziona</span>
+        <h2 class="section__title">Tre mosse e sei dentro il gioco</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card step">
+          <div class="step__top"><span class="step__icon"><i data-lucide="wallet"></i></span><span class="step__num br-mono">01</span></div>
+          <h3>Ricevi 10.000 € virtuali</h3>
+          <p>Parti con un capitale finto da investire come vuoi. Niente carte, niente rischi.</p>
+        </div>
+        <div class="card step">
+          <div class="step__top"><span class="step__icon"><i data-lucide="layout-grid"></i></span><span class="step__num br-mono">02</span></div>
+          <h3>Distribuisci tra 6 asset</h3>
+          <p>Liquidità, BTP, ETF, azioni, crypto e immobili: ognuno reagisce in modo diverso.</p>
+        </div>
+        <div class="card step">
+          <div class="step__top"><span class="step__icon"><i data-lucide="calendar-clock"></i></span><span class="step__num br-mono">03</span></div>
+          <h3>Avanza di un mese</h3>
+          <p>Il mercato si muove, gli eventi cambiano i prezzi. Scopri se le tue scelte pagano.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- ===== AREA MESSAGGI (cosa è successo) ===== -->
-    <section class="messaggio" id="messaggio">
-      Benvenuto! Investi una parte dei tuoi €10.000 nell'ETF, poi premi "Avanza Mese" per vedere come va il mercato. 🚀
-    </section>
+  <!-- ===== SEI MODI PER INVESTIRE ===== -->
+  <section class="section" id="investimenti">
+    <div class="section__inner">
+      <div class="section__head">
+        <span class="br-eyebrow">Sei modi per investire</span>
+        <h2 class="section__title">Ogni asset ha la sua personalità</h2>
+      </div>
+      <div class="grid-3 grid-3--tight" id="asset-grid">
+        <button class="asset" style="--acc:var(--br-cash)" data-asset>
+          <div class="asset__top"><span class="asset__icon"><i data-lucide="wallet"></i></span><span class="asset__delta">▴ +0.1%</span></div>
+          <div><div class="asset__name">Liquidità</div><div class="asset__value">€ 1.200</div></div>
+          <div><div class="asset__bar"><i style="width:10%"></i></div><div class="asset__alloc">10% del portafoglio</div></div>
+        </button>
+        <button class="asset" style="--acc:var(--br-bond)" data-asset>
+          <div class="asset__top"><span class="asset__icon"><i data-lucide="landmark"></i></span><span class="asset__delta">▴ +1.0%</span></div>
+          <div><div class="asset__name">BTP</div><div class="asset__value">€ 1.850</div></div>
+          <div><div class="asset__bar"><i style="width:15%"></i></div><div class="asset__alloc">15% del portafoglio</div></div>
+        </button>
+        <button class="asset" style="--acc:var(--br-etf)" data-asset>
+          <div class="asset__top"><span class="asset__icon"><i data-lucide="layers"></i></span><span class="asset__delta">▴ +1.2%</span></div>
+          <div><div class="asset__name">ETF</div><div class="asset__value">€ 3.400</div></div>
+          <div><div class="asset__bar"><i style="width:27%"></i></div><div class="asset__alloc">27% del portafoglio</div></div>
+        </button>
+        <button class="asset" style="--acc:var(--br-stock)" data-asset>
+          <div class="asset__top"><span class="asset__icon"><i data-lucide="trending-up"></i></span><span class="asset__delta asset__delta--down">▾ -2.8%</span></div>
+          <div><div class="asset__name">Azioni</div><div class="asset__value">€ 1.980</div></div>
+          <div><div class="asset__bar"><i style="width:16%"></i></div><div class="asset__alloc">16% del portafoglio</div></div>
+        </button>
+        <button class="asset asset--selected" style="--acc:var(--br-crypto)" data-asset>
+          <div class="asset__top"><span class="asset__icon"><i data-lucide="bitcoin"></i></span><span class="asset__delta">▴ +6.4%</span></div>
+          <div><div class="asset__name">Crypto</div><div class="asset__value">€ 2.150</div></div>
+          <div><div class="asset__bar"><i style="width:17%"></i></div><div class="asset__alloc">17% del portafoglio</div></div>
+        </button>
+        <button class="asset" style="--acc:var(--br-realestate)" data-asset>
+          <div class="asset__top"><span class="asset__icon"><i data-lucide="building-2"></i></span><span class="asset__delta">▴ +0.6%</span></div>
+          <div><div class="asset__name">Immobili</div><div class="asset__value">€ 1.900</div></div>
+          <div><div class="asset__bar"><i style="width:15%"></i></div><div class="asset__alloc">15% del portafoglio</div></div>
+        </button>
+      </div>
+    </div>
+  </section>
 
-  </main>
+  <!-- ===== EVENTO DEL MESE ===== -->
+  <section class="section">
+    <div class="section__inner">
+      <div class="section__head">
+        <span class="br-eyebrow">Evento del mese</span>
+        <h2 class="section__title">Il mercato ti mette alla prova</h2>
+      </div>
+      <div class="grid-2">
+        <div class="event">
+          <div class="event__kicker"><span class="dot"></span><span>Evento del mese</span></div>
+          <div class="event__row">
+            <span class="event__icon"><i data-lucide="newspaper"></i></span>
+            <div>
+              <h4 class="event__title">La BCE alza i tassi di interesse</h4>
+              <p class="event__body">Prendere prestiti costa di più: le aziende rallentano, ma le obbligazioni diventano più interessanti. Cosa fai col tuo portafoglio?</p>
+            </div>
+          </div>
+          <div class="event__impacts">
+            <span class="event__chip event__chip--up"><span class="lab">BTP</span><span class="val">▴ +3%</span></span>
+            <span class="event__chip event__chip--down"><span class="lab">Azioni</span><span class="val">▾ -5%</span></span>
+            <span class="event__chip event__chip--down"><span class="lab">Crypto</span><span class="val">▾ -7%</span></span>
+          </div>
+        </div>
+        <div class="events__text">
+          <h3>Una notizia vera, spiegata semplice</h3>
+          <p>Ogni turno introduce un evento ispirato all'economia reale. Capisci perché i prezzi si muovono, poi decidi la tua strategia per il mese successivo.</p>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <a href="login.html"><button class="btn btn--neon"><i data-lucide="calendar-arrow-down"></i> Avanza mese</button></a>
+            <span class="events__hint">+ guadagni XP a ogni decisione</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!--
-    Carichiamo la libreria Chart.js (serve internet la prima volta).
-    Una "libreria" è codice già scritto da altri che possiamo usare:
-    in questo caso serve a disegnare grafici belli senza fatica.
-  -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- ===== IMPARI GIOCANDO ===== -->
+  <section class="section" id="scuole">
+    <div class="section__inner">
+      <div class="section__head">
+        <span class="br-eyebrow">Impari giocando</span>
+        <h2 class="section__title">Educazione finanziaria che non sembra scuola</h2>
+      </div>
+      <div class="grid-4">
+        <div class="card card--interactive learn">
+          <span class="learn__icon"><i data-lucide="graduation-cap"></i></span>
+          <h3>Concetti reali</h3><p>Rischio, rendimento, diversificazione e interesse composto — spiegati giocando.</p>
+        </div>
+        <div class="card card--interactive learn">
+          <span class="learn__icon"><i data-lucide="gamepad-2"></i></span>
+          <h3>Zero noia</h3><p>Niente lezioni infinite: impari facendo scelte e vedendo subito le conseguenze.</p>
+        </div>
+        <div class="card card--interactive learn">
+          <span class="learn__icon"><i data-lucide="shield-check"></i></span>
+          <h3>Zero rischi</h3><p>Tutto è virtuale. Sbagliare qui costa solo un po' di XP.</p>
+        </div>
+        <div class="card card--interactive learn">
+          <span class="learn__icon"><i data-lucide="users"></i></span>
+          <h3>Sfida la classe</h3><p>Classifiche e tornei tra compagni per imparare insieme.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!-- Carichiamo il NOSTRO codice. Va messo per ultimo! -->
-  <script src="script.js"></script>
+  <!-- ===== CTA FINALE ===== -->
+  <section class="cta">
+    <div class="cta__panel">
+      <img class="cta__logo" src="assets/logo.png" alt="">
+      <h2>Pronto a far correre il tuo toro?</h2>
+      <p>Crea il tuo portafoglio in 30 secondi. Gratis, per sempre, per ogni studente.</p>
+      <a href="login.html"><button class="btn btn--primary btn--lg">Inizia a giocare <i data-lucide="arrow-right"></i></button></a>
+    </div>
+  </section>
 
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" id="contatti">
+    <div class="footer__brand">
+      <img src="assets/logo.png" alt="">
+      <span class="name">BullRun</span>
+      <span class="copy">© 2026 · Gioco educativo di finanza</span>
+    </div>
+    <div class="footer__links">
+      <a href="#">Privacy</a>
+      <a href="#scuole">Per le scuole</a>
+      <a href="#contatti">Contattaci</a>
+    </div>
+  </footer>
+
+  <!-- Libreria icone Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // Trasforma i <i data-lucide="..."> in vere icone.
+    lucide.createIcons();
+
+    // Nella sezione "Sei modi per investire": clic su un modulo lo seleziona.
+    document.querySelectorAll('#asset-grid [data-asset]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        document.querySelectorAll('#asset-grid [data-asset]').forEach(function (x) { x.classList.remove('asset--selected'); });
+        el.classList.add('asset--selected');
+      });
+    });
+  </script>
 </body>
-
 </html>
