@@ -41,7 +41,7 @@ async function accediConGoogle() {
   if (!sb) return { error: { message: "Supabase non è ancora configurato." } };
   return await sb.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: window.location.origin + "/index.html" }
+    options: { redirectTo: window.location.origin + "/hub.html" }
   });
 }
 

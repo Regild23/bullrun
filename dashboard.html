@@ -1,112 +1,330 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  BullRun - Il gioco degli investimenti 📈
+  BullRun · Dashboard (il gioco vero e proprio)
   ============================================================
-  Questo è il file HTML: descrive la STRUTTURA della pagina,
-  cioè QUALI cose ci sono (titoli, numeri, bottoni, grafico).
-
-  Pensa all'HTML come allo scheletro di una persona:
-  decide dove vanno le ossa, ma non il colore della pelle
-  (quello lo decide il CSS) né come si muove (quello il JavaScript).
+  La "postazione di controllo": vedi il patrimonio, scegli gli asset,
+  premi "Avanza mese" e il mercato reagisce all'evento.
+  La logica di gioco (lo "stato") è nello <script> in fondo.
 -->
 <html lang="it">
-
 <head>
-  <!-- Indica al browser che usiamo le lettere italiane (à, è, é...) -->
   <meta charset="UTF-8">
-  <!-- Fa funzionare bene la pagina anche sul cellulare -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullRun · La tua dashboard</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <style>
+    .dash-wrap { min-height: 100vh; display: flex; flex-direction: column; }
 
-  <title>BullRun 📈 — Il gioco degli investimenti</title>
+    /* Barra in alto */
+    .topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 32px; background: rgba(10,14,20,0.78); backdrop-filter: blur(16px); border-bottom: 1px solid var(--br-line); }
+    .topbar__brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+    .topbar__brand img { height: 36px; filter: drop-shadow(0 0 10px rgba(37,228,212,0.35)); }
+    .topbar__name { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: var(--br-text); }
+    .topbar__right { display: flex; align-items: center; gap: 14px; }
+    .cash-pill { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: var(--radius-pill);
+      background: var(--br-surface-2); border: 1px solid var(--br-line); font-family: var(--font-mono); font-size: 13px; color: var(--br-text); }
+    .cash-pill svg.lucide { width: 15px; height: 15px; color: var(--br-cash); }
+    .icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);
+      background: var(--br-surface-2); border: 1px solid var(--br-line); color: var(--br-text-muted); cursor: pointer; transition: .2s; }
+    .icon-btn:hover { color: var(--br-text); border-color: var(--br-line-strong); }
 
-  <!-- Colleghiamo il file con i colori e lo stile -->
-  <link rel="stylesheet" href="style.css">
+    /* Layout principale: colonna + sidebar */
+    .dash-main { flex: 1; max-width: 1280px; width: 100%; margin: 0 auto; padding: 28px 32px 56px;
+      display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+    .dash-col { display: flex; flex-direction: column; gap: 24px; }
+    .dash-side { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 88px; }
+
+    /* Tabs Mese/Anno/Tutto */
+    .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-pill); }
+    .tabs button { display: inline-flex; align-items: center; padding: 8px 16px; font-family: var(--font-display); font-weight: 600; font-size: 14px;
+      color: var(--br-text-muted); background: transparent; border: none; border-radius: var(--radius-pill); cursor: pointer; transition: .2s; }
+    .tabs button.on { color: var(--br-ink); background: var(--br-gradient); box-shadow: var(--glow-soft-teal); }
+
+    /* Grafico */
+    #spark { width: 100%; height: 190px; display: block; }
+
+    /* Mini statistiche sotto al grafico */
+    .minis { display: flex; gap: 24px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--br-line); }
+    .mini__label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--br-text-dim); margin-bottom: 5px; }
+    .mini__value { font-family: var(--font-mono); font-weight: 700; font-size: 17px; color: var(--br-text); }
+
+    .assets-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .assets-head h2 { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--br-text); }
+    .assets-head span { font-size: 13px; color: var(--br-text-dim); }
+    #asset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    /* Carta giocatore + XP */
+    .player { display: flex; align-items: center; gap: 14px; }
+    .player__name { font-family: var(--font-display); font-weight: 600; font-size: 17px; color: var(--br-text); }
+    .player__role { font-size: 13px; color: var(--br-text-dim); }
+    .xphead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+    .xphead .l { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--br-text-dim); }
+    .xphead .v { font-family: var(--font-mono); font-size: 12px; color: var(--br-text-muted); }
+    .xpbar { height: 10px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.07); overflow: hidden; }
+    .xpbar > i { display: block; height: 100%; background: var(--br-gradient); border-radius: inherit; box-shadow: 0 0 12px rgba(37,228,212,0.5); transition: width var(--dur-slow) var(--ease-out); }
+
+    /* Carta turno */
+    .turno-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .turno-head .v { font-family: var(--font-mono); font-size: 13px; color: var(--br-text-muted); }
+    .turno-note { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--br-text-dim); text-align: center; }
+    .turno-note b { color: var(--br-teal); font-weight: 600; }
+
+    /* Avatar giocatore */
+    .av { position: relative; display: inline-block; }
+    .av .ring { border-radius: 50%; background: var(--br-gradient); box-shadow: var(--glow-soft-teal); }
+    .av .face { width: 100%; height: 100%; border-radius: 50%; background: var(--br-surface-3); border: 2px solid var(--br-bg);
+      display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; color: var(--br-text); }
+    .av .lvl { position: absolute; right: -2px; bottom: -2px; display: flex; align-items: center; justify-content: center;
+      background: var(--br-bg); border: 1.5px solid var(--br-teal); color: var(--br-teal-bright); border-radius: var(--radius-pill);
+      font-family: var(--font-mono); font-weight: 700; line-height: 1; box-shadow: 0 0 10px rgba(37,228,212,0.4); }
+    .av--40 .ring { width: 40px; height: 40px; padding: 2px; } .av--40 .face { font-size: 14px; } .av--40 .lvl { min-width: 17px; height: 17px; font-size: 10px; padding: 0 4px; }
+    .av--52 .ring { width: 52px; height: 52px; padding: 3px; } .av--52 .face { font-size: 18px; } .av--52 .lvl { min-width: 22px; height: 22px; font-size: 12px; padding: 0 5px; }
+
+    @media (max-width: 920px) { .dash-main { grid-template-columns: 1fr; } .dash-side { position: static; } #asset-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { #asset-grid { grid-template-columns: 1fr; } .minis { flex-wrap: wrap; } .topbar { padding: 12px 16px; } }
+  </style>
 </head>
+<body class="br-grid-bg">
+  <div class="dash-wrap">
 
-<body>
-
-  <!-- ===== TESTATA (in alto) ===== -->
-  <header class="testata">
-    <h1>📈 BullRun</h1>
-    <p class="sottotitolo">Investi i tuoi €10.000 e fai crescere il patrimonio!</p>
-  </header>
-
-  <!-- ===== CONTENUTO PRINCIPALE ===== -->
-  <main class="contenuto">
-
-    <!-- ===== LE 4 CARTE CON I NUMERI ===== -->
-    <section class="riga-carte">
-
-      <!-- Carta 1: il patrimonio totale (la cosa più importante!) -->
-      <div class="carta carta-grande">
-        <span class="etichetta">Patrimonio Totale</span>
-        <!-- Questo numero verrà riempito dal JavaScript -->
-        <span class="numero-grande" id="patrimonio">€10.000</span>
+    <!-- BARRA IN ALTO -->
+    <header class="topbar">
+      <a class="topbar__brand" href="hub.html">
+        <img src="assets/logo.png" alt="">
+        <span class="topbar__name"><span class="br-gradient-text">Bull</span>Run</span>
+      </a>
+      <div class="topbar__right">
+        <span class="badge"><span class="badge__dot"></span>Mese <span id="tb-mese">7</span></span>
+        <span class="cash-pill"><i data-lucide="wallet"></i><span id="tb-cash">€ 1.200</span> liquidi</span>
+        <button class="icon-btn" title="Classifica"><i data-lucide="trophy"></i></button>
+        <button class="icon-btn" title="Notifiche"><i data-lucide="bell"></i></button>
+        <div class="av av--40"><div class="ring"><div class="face">LM</div></div><span class="lvl">7</span></div>
       </div>
+    </header>
 
-      <!-- Carta 2: i soldi liberi, non ancora investiti -->
-      <div class="carta">
-        <span class="etichetta">💵 Liquidità</span>
-        <span class="numero" id="liquidita">€10.000</span>
-      </div>
+    <main class="dash-main">
+      <!-- COLONNA PRINCIPALE -->
+      <div class="dash-col">
+        <div class="card card--glow-teal" style="padding:26px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+            <div class="stat">
+              <span class="stat__label">Patrimonio totale</span>
+              <div class="stat__row">
+                <span class="stat__value stat__value--xl stat__value--glow" id="patrimonio">€ 11.480</span>
+                <span class="stat__delta" id="pat-delta">▴ +0.0%</span>
+              </div>
+            </div>
+            <div class="tabs" id="tabs">
+              <button data-range="Mese">Mese</button>
+              <button data-range="Anno" class="on">Anno</button>
+              <button data-range="Tutto">Tutto</button>
+            </div>
+          </div>
+          <div style="margin-top:22px;">
+            <svg id="spark" viewBox="0 0 600 190" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sgrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="var(--br-green)"/><stop offset="100%" stop-color="var(--br-teal)"/>
+                </linearGradient>
+                <linearGradient id="sfill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="rgba(37,228,212,0.28)"/><stop offset="100%" stop-color="rgba(37,228,212,0)"/>
+                </linearGradient>
+              </defs>
+              <path id="spark-area" fill="url(#sfill)"></path>
+              <polyline id="spark-line" fill="none" stroke="url(#sgrad)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 0 6px rgba(37,228,212,0.45))"></polyline>
+              <circle id="spark-dot" r="4" fill="var(--br-teal-bright)" style="filter:drop-shadow(0 0 6px rgba(37,228,212,0.8))"></circle>
+            </svg>
+          </div>
+          <div class="minis">
+            <div><div class="mini__label">Capitale iniziale</div><div class="mini__value">€ 10.000</div></div>
+            <div><div class="mini__label">Guadagno totale</div><div class="mini__value" id="ms-gain">€ 1.480</div></div>
+            <div><div class="mini__label">Mese di gioco</div><div class="mini__value" id="ms-month">#7</div></div>
+          </div>
+        </div>
 
-      <!-- Carta 3: i soldi messi dentro l'ETF -->
-      <div class="carta">
-        <span class="etichetta">📊 Investito in ETF</span>
-        <span class="numero" id="valore-etf">€0</span>
-      </div>
-
-      <!-- Carta 4: a che mese siamo arrivati -->
-      <div class="carta">
-        <span class="etichetta">🗓️ Mese</span>
-        <span class="numero" id="mese">0</span>
-      </div>
-
-    </section>
-
-    <!-- ===== IL GRAFICO ===== -->
-    <section class="carta carta-grafico">
-      <span class="etichetta">Andamento del patrimonio</span>
-      <!-- Chart.js disegnerà il grafico dentro questa "tela" (canvas) -->
-      <canvas id="grafico"></canvas>
-    </section>
-
-    <!-- ===== I COMANDI (bottoni) ===== -->
-    <section class="carta carta-comandi">
-
-      <!-- Riga per investire nell'ETF -->
-      <div class="gruppo-comando">
-        <label for="campo-importo">Quanto vuoi investire nell'ETF S&amp;P500?</label>
-        <div class="riga-investi">
-          <!-- Qui l'utente scrive quanti euro investire -->
-          <input type="number" id="campo-importo" placeholder="es. 5000" min="0" step="100">
-          <button id="bottone-investi" class="bottone bottone-verde">Investi in ETF</button>
+        <div>
+          <div class="assets-head"><h2>I tuoi asset</h2><span>Tocca un modulo per i dettagli</span></div>
+          <div id="asset-grid"></div>
         </div>
       </div>
 
-      <!-- Bottone per far passare un mese -->
-      <button id="bottone-avanza" class="bottone bottone-blu">⏭️ Avanza Mese</button>
+      <!-- SIDEBAR -->
+      <aside class="dash-side">
+        <div class="card" style="padding:20px;">
+          <div class="player">
+            <div class="av av--52"><div class="ring"><div class="face">LM</div></div><span class="lvl">7</span></div>
+            <div><div class="player__name">Luca M.</div><div class="player__role">Investitore in erba</div></div>
+          </div>
+          <div style="margin-top:16px;">
+            <div class="xphead"><span class="l">Livello 7</span><span class="v" id="xp-text">740 / 1000 XP</span></div>
+            <div class="xpbar"><i id="xp-fill" style="width:74%"></i></div>
+          </div>
+        </div>
 
-    </section>
+        <div class="event" id="event">
+          <div class="event__kicker"><span class="dot"></span><span>Evento del mese</span></div>
+          <div class="event__row">
+            <span class="event__icon" id="ev-icon"><i data-lucide="newspaper"></i></span>
+            <div><h4 class="event__title" id="ev-title">—</h4><p class="event__body" id="ev-body">—</p></div>
+          </div>
+          <div class="event__impacts" id="ev-impacts"></div>
+        </div>
 
-    <!-- ===== AREA MESSAGGI (cosa è successo) ===== -->
-    <section class="messaggio" id="messaggio">
-      Benvenuto! Investi una parte dei tuoi €10.000 nell'ETF, poi premi "Avanza Mese" per vedere come va il mercato. 🚀
-    </section>
+        <div class="card" style="padding:20px;">
+          <div class="turno-head"><span class="br-eyebrow">Turno</span><span class="v" id="turno-mesi">Mese 7 → 8</span></div>
+          <button class="btn btn--primary btn--lg" id="avanza" style="width:100%;">Avanza mese <i data-lucide="calendar-arrow-down"></i></button>
+          <p class="turno-note">Il mercato reagisce all'evento e guadagni <b>+35 XP</b>.</p>
+        </div>
+      </aside>
+    </main>
+  </div>
 
-  </main>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // ====== I DATI DEL GIOCO ======
+    const ASSET_DEFS = [
+      { id:'cash', name:'Liquidità', accent:'var(--br-cash)', icon:'wallet' },
+      { id:'bond', name:'BTP', accent:'var(--br-bond)', icon:'landmark' },
+      { id:'etf', name:'ETF', accent:'var(--br-etf)', icon:'layers' },
+      { id:'stock', name:'Azioni', accent:'var(--br-stock)', icon:'trending-up' },
+      { id:'crypto', name:'Crypto', accent:'var(--br-crypto)', icon:'bitcoin' },
+      { id:'realestate', name:'Immobili', accent:'var(--br-realestate)', icon:'building-2' },
+    ];
+    // Quanti soldi ci sono in ogni asset all'inizio
+    const START = { cash:1200, bond:1850, etf:3400, stock:1980, crypto:2150, realestate:1900 };
+    // Gli eventi: ognuno cambia i prezzi degli asset (in frazione: 0.03 = +3%)
+    const EVENTS = [
+      { title:'La BCE alza i tassi di interesse', icon:'newspaper',
+        body:'Prendere prestiti costa di più: le aziende rallentano, ma le obbligazioni rendono di più.',
+        fx:{ bond:0.03, stock:-0.05, crypto:-0.07, etf:-0.02, realestate:-0.01, cash:0.001 } },
+      { title:"Boom dell'intelligenza artificiale", icon:'cpu',
+        body:'Le aziende tech volano. Azioni ed ETF ne traggono vantaggio, e anche le crypto salgono.',
+        fx:{ stock:0.08, etf:0.05, crypto:0.06, bond:-0.01, realestate:0.01, cash:0 } },
+      { title:"L'inflazione torna a scendere", icon:'trending-down',
+        body:'I prezzi crescono più lentamente: buone notizie per azioni e immobili.',
+        fx:{ stock:0.04, realestate:0.03, etf:0.03, bond:0.01, crypto:0.02, cash:-0.002 } },
+      { title:'Crollo improvviso di una grande crypto', icon:'zap',
+        body:'Il panico colpisce il mercato cripto. Chi era diversificato sente meno il colpo.',
+        fx:{ crypto:-0.18, stock:-0.02, etf:-0.01, bond:0.01, realestate:0, cash:0 } },
+      { title:'Nuovi incentivi per la casa', icon:'building-2',
+        body:'Il governo sostiene il mercato immobiliare. Gli immobili si rivalutano.',
+        fx:{ realestate:0.06, bond:0.01, stock:0.01, etf:0.01, crypto:-0.01, cash:0 } },
+    ];
 
-  <!--
-    Carichiamo la libreria Chart.js (serve internet la prima volta).
-    Una "libreria" è codice già scritto da altri che possiamo usare:
-    in questo caso serve a disegnare grafici belli senza fatica.
-  -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    // ====== LO STATO (cambia mentre giochi) ======
+    let month = 7;
+    let holdings = { ...START };
+    let prev = { ...START };          // valori del mese scorso (per calcolare i guadagni)
+    let eventIdx = 0;
+    let xp = 740;
+    let history = [10000, 10420, 10180, 10890, 11240, 11020, 11480];
 
-  <!-- Carichiamo il NOSTRO codice. Va messo per ultimo! -->
-  <script src="script.js"></script>
+    // Se arrivi da un oggetto dell'Hub (es. #crypto), partiamo con quell'asset selezionato
+    const validIds = ASSET_DEFS.map(a => a.id);
+    let sel = validIds.includes(location.hash.replace('#','')) ? location.hash.replace('#','') : 'crypto';
 
+    // ====== AIUTANTI ======
+    const eur = n => '€ ' + Math.round(n).toLocaleString('it-IT');
+    const total = () => Object.values(holdings).reduce((a,b) => a+b, 0);
+    function assetDelta(id) { const d = ((holdings[id]-prev[id]) / (prev[id]||1)) * 100; return (d>=0?'+':'') + d.toFixed(1) + '%'; }
+    // Dall'evento ricava le 3-4 etichette d'impatto più forti
+    function impactsFromFx(fx) {
+      return Object.entries(fx).filter(([,v]) => Math.abs(v) >= 0.02)
+        .sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0,4)
+        .map(([id,v]) => ({ label: ASSET_DEFS.find(a=>a.id===id).name, delta:(v>0?'+':'')+Math.round(v*100)+'%', dir: v<0?'down':'up' }));
+    }
+
+    // ====== IL GRAFICO ======
+    function renderSparkline() {
+      const W=600, H=190, pad=6, data=history;
+      const min=Math.min(...data), max=Math.max(...data), range=(max-min)||1, n=data.length;
+      const X = i => pad + (i/Math.max(1,n-1)) * (W-pad*2);
+      const Y = v => pad + (1-(v-min)/range) * (H-pad*2);
+      document.getElementById('spark-line').setAttribute('points', data.map((v,i)=>X(i)+','+Y(v)).join(' '));
+      document.getElementById('spark-area').setAttribute('d',
+        'M '+X(0)+','+Y(data[0])+' ' + data.map((v,i)=>'L '+X(i)+','+Y(v)).join(' ') + ' L '+X(n-1)+','+(H-pad)+' L '+X(0)+','+(H-pad)+' Z');
+      const dot = document.getElementById('spark-dot'); dot.setAttribute('cx', X(n-1)); dot.setAttribute('cy', Y(data[n-1]));
+    }
+
+    // ====== DISEGNA TUTTO ======
+    function render() {
+      const t = total();
+      const prevTotal = Object.values(prev).reduce((a,b)=>a+b,0);
+      const tDelta = ((t-prevTotal)/prevTotal) * 100;
+
+      document.getElementById('tb-mese').textContent = month;
+      document.getElementById('tb-cash').textContent = eur(holdings.cash);
+
+      document.getElementById('patrimonio').textContent = eur(t);
+      const pd = document.getElementById('pat-delta');
+      pd.textContent = (tDelta<0?'▾ ':'▴ ') + (tDelta>=0?'+':'') + tDelta.toFixed(1) + '%';
+      pd.className = 'stat__delta' + (tDelta<0 ? ' stat__delta--down' : '');
+
+      const gain = t - 10000;
+      const mg = document.getElementById('ms-gain');
+      mg.textContent = eur(gain); mg.style.color = gain>=0 ? 'var(--br-up)' : 'var(--br-down)';
+      document.getElementById('ms-month').textContent = '#' + month;
+
+      renderSparkline();
+
+      // I moduli asset (li ricreiamo per aggiornare valori, guadagni e barre)
+      document.getElementById('asset-grid').innerHTML = ASSET_DEFS.map(a => {
+        const d = assetDelta(a.id); const down = d.trim().startsWith('-');
+        const alloc = Math.round((holdings[a.id]/t) * 100);
+        return '<button class="asset' + (sel===a.id?' asset--selected':'') + '" style="--acc:' + a.accent + '" data-id="' + a.id + '">'
+          + '<div class="asset__top"><span class="asset__icon"><i data-lucide="' + a.icon + '"></i></span>'
+          + '<span class="asset__delta' + (down?' asset__delta--down':'') + '">' + (down?'▾':'▴') + ' ' + d + '</span></div>'
+          + '<div><div class="asset__name">' + a.name + '</div><div class="asset__value">' + eur(holdings[a.id]) + '</div></div>'
+          + '<div><div class="asset__bar"><i style="width:' + alloc + '%"></i></div><div class="asset__alloc">' + alloc + '% del portafoglio</div></div>'
+          + '</button>';
+      }).join('');
+
+      // L'evento del mese
+      const ev = EVENTS[eventIdx];
+      document.getElementById('ev-title').textContent = ev.title;
+      document.getElementById('ev-body').textContent = ev.body;
+      document.getElementById('ev-icon').innerHTML = '<i data-lucide="' + ev.icon + '"></i>';
+      document.getElementById('ev-impacts').innerHTML = impactsFromFx(ev.fx).map(im =>
+        '<span class="event__chip event__chip--' + im.dir + '"><span class="lab">' + im.label + '</span>'
+        + '<span class="val">' + (im.dir==='down'?'▾':'▴') + ' ' + im.delta + '</span></span>').join('');
+
+      document.getElementById('xp-text').textContent = xp + ' / 1000 XP';
+      document.getElementById('xp-fill').style.width = (xp/10) + '%';
+      document.getElementById('turno-mesi').textContent = 'Mese ' + month + ' → ' + (month+1);
+
+      lucide.createIcons();
+    }
+
+    // ====== AVANZA DI UN MESE ======
+    function advance() {
+      const next = EVENTS[(eventIdx+1) % EVENTS.length];
+      const nh = {};
+      for (const a of ASSET_DEFS) {
+        const drift = (Math.random() - 0.45) * 0.03;      // un po' di casualità
+        const f = (next.fx[a.id] || 0) + drift;
+        nh[a.id] = Math.max(0, holdings[a.id] * (1 + f));
+      }
+      prev = holdings; holdings = nh;
+      history = history.slice(-11).concat(Object.values(nh).reduce((x,y)=>x+y,0));
+      eventIdx = (eventIdx+1) % EVENTS.length;
+      month++;
+      xp = Math.min(1000, xp + 35);
+      render();
+    }
+
+    // ====== COLLEGAMENTI ======
+    document.getElementById('asset-grid').addEventListener('click', e => {
+      const b = e.target.closest('[data-id]'); if (b) { sel = b.dataset.id; render(); }
+    });
+    document.getElementById('avanza').addEventListener('click', advance);
+    document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
+      document.querySelectorAll('#tabs button').forEach(x => x.classList.remove('on')); b.classList.add('on');
+    }));
+
+    render();  // disegna la prima volta
+  </script>
 </body>
-
 </html>
