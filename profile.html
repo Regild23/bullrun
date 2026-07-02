@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BullRun · Profilo del giocatore
+  ============================================================
+  Gestione profilo: username, email, e la collezione di SKIN
+  (avatar sbloccabili giocando). Per ora username e skin scelta
+  si salvano nel browser (localStorage); l'email arriva da Supabase.
+-->
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullRun · Il tuo profilo</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <style>
+    /* Barra in alto */
+    .ptop { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 18px;
+      padding: 14px 24px; background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--br-line); }
+    .ptop .back { display: inline-flex; align-items: center; gap: 6px; color: var(--br-text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .ptop .back:hover { color: var(--br-text); }
+    .ptop .back svg.lucide { width: 16px; height: 16px; }
+    .ptop .brand { display: flex; align-items: center; gap: 9px; }
+    .ptop .brand img { height: 28px; filter: drop-shadow(0 0 10px rgba(37,228,212,0.35)); }
+    .ptop .brand span { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--br-text); }
+
+    .pwrap { max-width: 780px; margin: 0 auto; padding: 30px 24px 60px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Carta profilo */
+    .prof { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    .prof__form { flex: 1; min-width: 260px; }
+    .prof__form label { display: block; font-size: 13px; color: var(--br-text-muted); margin: 12px 0 6px; }
+    .prof__form input { width: 100%; background: var(--br-surface-3); border: 1px solid var(--br-line); border-radius: var(--radius-md);
+      padding: 11px 14px; color: var(--br-text); font-size: 15px; font-family: var(--font-body); }
+    .prof__form input:focus { outline: none; border-color: var(--br-line-neon); box-shadow: 0 0 0 3px rgba(37,228,212,0.12); }
+    .prof__email { background: var(--br-surface); border: 1px dashed var(--br-line); border-radius: var(--radius-md);
+      padding: 11px 14px; font-family: var(--font-mono); font-size: 14px; color: var(--br-text-muted); }
+    .prof__msg { margin-top: 10px; font-size: 13px; color: var(--br-up); min-height: 16px; }
+
+    /* Avatar grande (skin equipaggiata) */
+    .av-big { position: relative; width: 108px; height: 108px; flex: none; }
+    .av-big .ring { width: 108px; height: 108px; border-radius: 50%; padding: 4px; box-shadow: var(--glow-soft-teal); }
+    .av-big .face { width: 100%; height: 100%; border-radius: 50%; background: var(--br-surface-3); border: 3px solid var(--br-bg);
+      display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 34px; color: var(--br-text); }
+    .av-big .lvl { position: absolute; right: 2px; bottom: 2px; min-width: 26px; height: 26px; padding: 0 6px; display: flex; align-items: center; justify-content: center;
+      background: var(--br-bg); border: 2px solid var(--br-teal); color: var(--br-teal-bright); border-radius: var(--radius-pill);
+      font-family: var(--font-mono); font-weight: 700; font-size: 12px; box-shadow: 0 0 10px rgba(37,228,212,0.4); }
+    .av-big .xp { margin-top: 12px; }
+    .av-big .xp .bar { height: 8px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.07); overflow: hidden; }
+    .av-big .xp .bar > i { display: block; height: 100%; width: 74%; background: var(--br-gradient); box-shadow: 0 0 12px rgba(37,228,212,0.5); }
+    .av-big .xp .t { font-family: var(--font-mono); font-size: 11px; color: var(--br-text-dim); margin-top: 5px; text-align: center; }
+
+    /* Collezione skin */
+    .skins__head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .skins__head h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--br-text); }
+    .skins__head span { font-size: 13px; color: var(--br-text-dim); }
+    .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+    .skin { background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg); padding: 16px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; text-align: center;
+      transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+    .skin:hover { transform: translateY(-3px); border-color: var(--br-line-strong); }
+    .skin.equip { border-color: var(--br-teal); box-shadow: var(--glow-teal); }
+    .skin.locked { cursor: not-allowed; }
+    .skin__disc { position: relative; width: 58px; height: 58px; border-radius: 50%; padding: 3px; }
+    .skin__disc .in { width: 100%; height: 100%; border-radius: 50%; background: var(--br-surface-3); border: 2px solid var(--br-bg); }
+    .skin.locked .skin__disc { filter: grayscale(0.7) brightness(0.5); }
+    .skin__lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--br-text); }
+    .skin__lock svg.lucide { width: 20px; height: 20px; }
+    .skin__name { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--br-text); }
+    .skin__note { font-size: 11px; color: var(--br-text-dim); line-height: 1.3; }
+    .skin__note.eq { color: var(--br-teal); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    @media (max-width: 620px) { .skin-grid { grid-template-columns: 1fr 1fr; } .prof { justify-content: center; } }
+  </style>
+</head>
+<body class="br-grid-bg">
+
+  <header class="ptop">
+    <a class="back" href="hub.html"><i data-lucide="arrow-left"></i> Cameretta</a>
+    <div class="brand"><img src="assets/logo.png" alt=""><span>Il tuo profilo</span></div>
+  </header>
+
+  <main class="pwrap">
+
+    <!-- Carta profilo -->
+    <div class="card prof">
+      <div class="av-big">
+        <div class="ring" id="big-ring"><div class="face" id="big-face">LM</div></div>
+        <span class="lvl">7</span>
+        <div class="xp"><div class="bar"><i></i></div><div class="t">740 / 1000 XP</div></div>
+      </div>
+      <div class="prof__form">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Il tuo nome da giocatore" maxlength="20">
+        <label>Email</label>
+        <div class="prof__email" id="email">Accedi per collegare la tua email</div>
+        <button class="btn btn--primary" id="salva" style="margin-top:16px;">Salva profilo</button>
+        <div class="prof__msg" id="msg"></div>
+      </div>
+    </div>
+
+    <!-- Collezione skin -->
+    <section>
+      <div class="skins__head">
+        <h2>Le tue skin</h2>
+        <span>Vincile giocando e collezionale</span>
+      </div>
+      <div class="skin-grid" id="skin-grid"></div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // ===== Le skin (avatar collezionabili) =====
+    // "locked: true" = ancora da vincere giocando.
+    const SKINS = [
+      { id:'classico', name:'Classico',   grad:'linear-gradient(135deg,#B6F23C,#25E4D4)', locked:false },
+      { id:'ciano',    name:'Onda Ciano', grad:'linear-gradient(135deg,#25E4D4,#5b8cff)', locked:false },
+      { id:'lavanda',  name:'Lavanda',    grad:'linear-gradient(135deg,#C7A1F5,#25E4D4)', locked:false },
+      { id:'verde',    name:'Verde Neon', grad:'linear-gradient(135deg,#B6F23C,#6EE787)', locked:false },
+      { id:'oro',      name:'Oro',        grad:'linear-gradient(135deg,#FFC24B,#B6F23C)', locked:true,  sblocca:'Livello 10' },
+      { id:'toro',     name:'Toro Leggendario', grad:'linear-gradient(120deg,#FF6BD0,#C7A1F5,#25E4D4)', locked:true, sblocca:'Vinci un torneo' },
+      { id:'fuoco',    name:'Fuoco',      grad:'linear-gradient(135deg,#FF5C7A,#FFC24B)', locked:true,  sblocca:'Sopravvivi a un crash' },
+      { id:'ghiaccio', name:'Ghiaccio',   grad:'linear-gradient(135deg,#7FF9E4,#8FB4FF)', locked:true,  sblocca:'30 giorni di gioco' },
+    ];
+
+    // Stato salvato nel browser
+    let username = localStorage.getItem('br_username') || 'Giocatore';
+    let equipped = localStorage.getItem('br_skin') || 'classico';
+
+    const $ = id => document.getElementById(id);
+    function iniziali(nome){
+      const p = nome.trim().split(/\s+/);
+      return ((p[0]?.[0] || 'B') + (p[1]?.[0] || p[0]?.[1] || 'R')).toUpperCase();
+    }
+    function skinById(id){ return SKINS.find(s => s.id === id) || SKINS[0]; }
+
+    function render(){
+      // avatar grande
+      const eq = skinById(equipped);
+      $('big-ring').style.background = eq.grad;
+      $('big-face').textContent = iniziali(username);
+      $('username').value = username;
+
+      // griglia skin
+      $('skin-grid').innerHTML = SKINS.map(s => {
+        const isEq = s.id === equipped;
+        const note = s.locked ? ('🔒 ' + s.sblocca) : (isEq ? 'Equipaggiata' : 'Disponibile');
+        return '<div class="skin' + (isEq ? ' equip' : '') + (s.locked ? ' locked' : '') + '" data-id="' + s.id + '">'
+          + '<div class="skin__disc" style="background:' + s.grad + '"><div class="in"></div>'
+          + (s.locked ? '<span class="skin__lock"><i data-lucide="lock"></i></span>' : '') + '</div>'
+          + '<div class="skin__name">' + s.name + '</div>'
+          + '<div class="skin__note' + (isEq ? ' eq' : '') + '">' + note + '</div>'
+          + '</div>';
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // Click su una skin
+    $('skin-grid').addEventListener('click', e => {
+      const el = e.target.closest('[data-id]'); if(!el) return;
+      const s = skinById(el.dataset.id);
+      if(s.locked){ mostra('🔒 Skin bloccata — sbloccala: ' + s.sblocca, false); return; }
+      equipped = s.id; localStorage.setItem('br_skin', equipped);
+      render(); mostra('Skin "' + s.name + '" equipaggiata!', true);
+    });
+
+    // Salva username
+    $('salva').addEventListener('click', () => {
+      username = ($('username').value.trim() || 'Giocatore');
+      localStorage.setItem('br_username', username);
+      render(); mostra('Profilo salvato!', true);
+    });
+
+    let msgTimer;
+    function mostra(t, ok){
+      const m = $('msg'); m.textContent = t; m.style.color = ok ? 'var(--br-up)' : 'var(--br-warn)';
+      clearTimeout(msgTimer); msgTimer = setTimeout(() => { m.textContent = ''; }, 3000);
+    }
+
+    // Email dal login Supabase (se collegato)
+    (async () => {
+      try { const u = await utenteAttuale(); if(u && u.email) $('email').textContent = u.email; }
+      catch(e){}
+    })();
+
+    render();
+  </script>
+</body>
+</html>
