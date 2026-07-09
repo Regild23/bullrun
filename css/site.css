@@ -197,6 +197,37 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
 .cta h2 { margin: 0 0 12px; font-family: var(--font-display); font-size: 40px; font-weight: 700; letter-spacing: -0.02em; color: var(--br-text); position: relative; }
 .cta p { margin: 0 auto 28px; font-size: 17px; color: var(--br-text-muted); max-width: 480px; position: relative; }
 
+/* ---------------- ESPLORA ASSET (lista + pannello dettaglio) ---------------- */
+.asset-explorer { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: stretch; }
+.asset-list { display: flex; flex-direction: column; gap: 10px; }
+.asset-tab { --acc: var(--br-teal); display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 14px 16px; background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-md);
+  cursor: pointer; font-family: var(--font-display); font-weight: 600; font-size: 15px; color: var(--br-text-muted);
+  transition: all var(--dur-base) var(--ease-out); }
+.asset-tab:hover { border-color: var(--br-line-strong); color: var(--br-text); }
+.asset-tab__ic { flex: none; width: 34px; height: 34px; border-radius: var(--radius-sm); display: inline-flex;
+  align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: var(--acc);
+  transition: all var(--dur-base) var(--ease-out); }
+.asset-tab.on { color: var(--br-text); border-color: var(--acc); background: var(--br-surface-2);
+  box-shadow: 0 0 0 1px var(--acc), 0 0 22px -6px var(--acc); }
+.asset-tab.on .asset-tab__ic { background: var(--acc); color: var(--br-ink); }
+
+.asset-detail { --acc: var(--br-teal); background: var(--br-surface); border: 1px solid var(--br-line);
+  border-radius: var(--radius-lg); padding: 30px; display: flex; flex-direction: column; gap: 18px; }
+.asset-detail__head { display: flex; align-items: center; gap: 16px; }
+.asset-detail__ic { flex: none; width: 52px; height: 52px; border-radius: var(--radius-md); display: flex;
+  align-items: center; justify-content: center; background: var(--acc); color: var(--br-ink); }
+.asset-detail__ic svg.lucide { width: 24px; height: 24px; }
+.asset-detail__name { font-family: var(--font-display); font-weight: 700; font-size: 25px; color: var(--br-text); }
+.asset-detail__meta { display: flex; gap: 32px; flex-wrap: wrap; }
+.asset-detail__lab { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--br-text-dim); margin-bottom: 7px; }
+.asset-detail__val { font-family: var(--font-mono); font-weight: 700; font-size: 15px; color: var(--br-text); }
+.risk-bar { display: flex; gap: 4px; margin-top: 2px; }
+.risk-bar i { width: 22px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); }
+.risk-bar i.on { background: var(--acc); box-shadow: 0 0 8px var(--acc); }
+.asset-detail__body { margin: 0; font-size: 15.5px; line-height: 1.7; color: var(--br-text-muted); }
+.asset-detail__body b { color: var(--br-text); font-weight: 600; }
+
 /* ---------------- STAGIONE / CONTATORE ---------------- */
 .season { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
 .season__prize { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--br-text-muted); margin-top: 10px; }
@@ -264,6 +295,7 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
   .nav__menu { display: none; }
   .hero__preview .float-logo { width: 100px; top: -76px; right: 4px; }
   .season { grid-template-columns: 1fr; }
+  .asset-explorer { grid-template-columns: 1fr; }
 }
 @media (max-width: 540px) {
   .wrap, .nav, .hero, .section, .cta { padding-left: 18px; padding-right: 18px; }

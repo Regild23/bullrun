@@ -142,37 +142,9 @@
         <span class="br-eyebrow">Sei modi per investire</span>
         <h2 class="section__title">Ogni asset ha la sua personalità</h2>
       </div>
-      <div class="grid-3 grid-3--tight" id="asset-grid">
-        <button class="asset" style="--acc:var(--br-cash)" data-asset>
-          <div class="asset__top"><span class="asset__icon"><i data-lucide="wallet"></i></span><span class="asset__delta">▴ +0.1%</span></div>
-          <div><div class="asset__name">Liquidità</div><div class="asset__value">€ 12.000</div></div>
-          <div><div class="asset__bar"><i style="width:10%"></i></div><div class="asset__alloc">10% del portafoglio</div></div>
-        </button>
-        <button class="asset" style="--acc:var(--br-bond)" data-asset>
-          <div class="asset__top"><span class="asset__icon"><i data-lucide="landmark"></i></span><span class="asset__delta">▴ +1.0%</span></div>
-          <div><div class="asset__name">BTP</div><div class="asset__value">€ 18.500</div></div>
-          <div><div class="asset__bar"><i style="width:15%"></i></div><div class="asset__alloc">15% del portafoglio</div></div>
-        </button>
-        <button class="asset" style="--acc:var(--br-etf)" data-asset>
-          <div class="asset__top"><span class="asset__icon"><i data-lucide="layers"></i></span><span class="asset__delta">▴ +1.2%</span></div>
-          <div><div class="asset__name">ETF</div><div class="asset__value">€ 34.000</div></div>
-          <div><div class="asset__bar"><i style="width:27%"></i></div><div class="asset__alloc">27% del portafoglio</div></div>
-        </button>
-        <button class="asset" style="--acc:var(--br-stock)" data-asset>
-          <div class="asset__top"><span class="asset__icon"><i data-lucide="trending-up"></i></span><span class="asset__delta asset__delta--down">▾ -2.8%</span></div>
-          <div><div class="asset__name">Azioni</div><div class="asset__value">€ 19.800</div></div>
-          <div><div class="asset__bar"><i style="width:16%"></i></div><div class="asset__alloc">16% del portafoglio</div></div>
-        </button>
-        <button class="asset asset--selected" style="--acc:var(--br-crypto)" data-asset>
-          <div class="asset__top"><span class="asset__icon"><i data-lucide="bitcoin"></i></span><span class="asset__delta">▴ +6.4%</span></div>
-          <div><div class="asset__name">Crypto</div><div class="asset__value">€ 21.500</div></div>
-          <div><div class="asset__bar"><i style="width:17%"></i></div><div class="asset__alloc">17% del portafoglio</div></div>
-        </button>
-        <button class="asset" style="--acc:var(--br-realestate)" data-asset>
-          <div class="asset__top"><span class="asset__icon"><i data-lucide="building-2"></i></span><span class="asset__delta">▴ +0.6%</span></div>
-          <div><div class="asset__name">Immobili</div><div class="asset__value">€ 19.000</div></div>
-          <div><div class="asset__bar"><i style="width:15%"></i></div><div class="asset__alloc">15% del portafoglio</div></div>
-        </button>
+      <div class="asset-explorer">
+        <div class="asset-list" id="asset-list"></div>
+        <div class="asset-detail" id="asset-detail"></div>
       </div>
     </div>
   </section>
@@ -329,7 +301,7 @@
     lucide.createIcons();
 
     // Clic su un modulo asset: lo seleziona (e deseleziona gli altri dello stesso gruppo).
-    // Usata sia per la sezione "Sei modi per investire" sia per l'anteprima nell'hero.
+    // Usata per l'anteprima nell'hero (i due moduli Crypto/ETF).
     function rendiSelezionabili(contenitoreSelector) {
       const contenitore = document.querySelector(contenitoreSelector);
       if (!contenitore) return;
@@ -340,8 +312,72 @@
         });
       });
     }
-    rendiSelezionabili('#asset-grid');
     rendiSelezionabili('#hero-assets');
+
+    // ====== "Sei modi per investire": lista + pannello di spiegazione ======
+    // Un solo posto con i dati di ogni asset: nome, icona, colore, quanto
+    // rischio (1-5) e una spiegazione semplice di cosa è e perché si comporta così.
+    const ASSET_INFO = [
+      { id: 'cash', nome: 'Liquidità', icona: 'wallet', acc: 'var(--br-cash)', rischio: 1,
+        rendimento: '~0% (anzi, un po\' meno)',
+        testo: 'Sono i contanti fermi nel portafoglio: nessuna sorpresa, nessun rischio. Ma occhio — <b>l\'inflazione li erode piano piano</b>, circa il 3% ogni anno. <b>Soldi fermi sono soldi morti</b>: se non li fai lavorare, perdono valore settimana dopo settimana.' },
+      { id: 'bond', nome: 'BTP', icona: 'landmark', acc: 'var(--br-bond)', rischio: 2,
+        rendimento: '~3% all\'anno',
+        testo: 'Presti i tuoi soldi allo Stato, e lo Stato te li ridà con un piccolo interesse in più. È l\'investimento del "dormi tranquillo" — stabile, ma sensibile a cosa decide la banca centrale sui tassi.' },
+      { id: 'etf', nome: 'ETF S&P500', icona: 'layers', acc: 'var(--br-etf)', rischio: 3,
+        rendimento: '~7% medio all\'anno',
+        testo: 'Un unico acquisto che ti porta un pezzettino di 500 grandi aziende americane insieme. Cresce piano ma con costanza: la scelta di chi ha pazienza e non vuole scommettere su una sola azienda.' },
+      { id: 'stock', nome: 'Azioni', icona: 'trending-up', acc: 'var(--br-stock)', rischio: 4,
+        rendimento: 'Molto variabile',
+        testo: 'Compri un pezzo di UNA sola azienda. Se quell\'azienda vola, voli con lei. Se inciampa, scendi più in fretta di un ETF — qui non sei diversificato, e si sente.' },
+      { id: 'crypto', nome: 'Crypto', icona: 'bitcoin', acc: 'var(--br-crypto)', rischio: 5,
+        rendimento: 'da -80% a +300%',
+        testo: 'Le montagne russe della finanza: può decuplicare in un mese o dimezzarsi in una settimana. Emozionante da guardare, pericoloso da tenerci dentro tutto il patrimonio.' },
+      { id: 'realestate', nome: 'Immobili (REIT)', icona: 'building-2', acc: 'var(--br-realestate)', rischio: 3,
+        rendimento: 'Affitto + rivalutazione',
+        testo: 'Il "mattone" in versione digitale: possiedi una fetta di edifici veri senza comprare un intero palazzo. Guadagni sia dagli affitti incassati sia dal valore dell\'immobile che cresce nel tempo.' },
+    ];
+
+    const listaAsset = document.getElementById('asset-list');
+    const dettaglioAsset = document.getElementById('asset-detail');
+
+    function barreRischio(livello) {
+      let html = '<div class="risk-bar">';
+      for (let i = 1; i <= 5; i++) html += '<i class="' + (i <= livello ? 'on' : '') + '"></i>';
+      return html + '</div>';
+    }
+    const LIVELLI_RISCHIO = { 1: 'Zero', 2: 'Basso', 3: 'Medio', 4: 'Alto', 5: 'Altissimo' };
+
+    function mostraAsset(a) {
+      listaAsset.querySelectorAll('.asset-tab').forEach(function (el) {
+        el.classList.toggle('on', el.dataset.id === a.id);
+      });
+      dettaglioAsset.style.setProperty('--acc', a.acc);
+      dettaglioAsset.innerHTML =
+        '<div class="asset-detail__head">' +
+          '<span class="asset-detail__ic"><i data-lucide="' + a.icona + '"></i></span>' +
+          '<span class="asset-detail__name">' + a.nome + '</span>' +
+        '</div>' +
+        '<div class="asset-detail__meta">' +
+          '<div><div class="asset-detail__lab">Rischio</div>' + barreRischio(a.rischio) +
+            '<div class="asset-detail__val" style="margin-top:6px;">' + LIVELLI_RISCHIO[a.rischio] + '</div></div>' +
+          '<div><div class="asset-detail__lab">Rendimento atteso</div><div class="asset-detail__val">' + a.rendimento + '</div></div>' +
+        '</div>' +
+        '<p class="asset-detail__body">' + a.testo + '</p>';
+      lucide.createIcons();
+    }
+
+    listaAsset.innerHTML = ASSET_INFO.map(function (a) {
+      return '<button class="asset-tab" style="--acc:' + a.acc + '" data-id="' + a.id + '">' +
+        '<span class="asset-tab__ic"><i data-lucide="' + a.icona + '"></i></span>' + a.nome +
+        '</button>';
+    }).join('');
+    listaAsset.querySelectorAll('.asset-tab').forEach(function (el) {
+      el.addEventListener('click', function () {
+        mostraAsset(ASSET_INFO.find(function (a) { return a.id === el.dataset.id; }));
+      });
+    });
+    mostraAsset(ASSET_INFO[0]); // Si parte da "Liquidità": è la lezione più importante.
 
     // Aggiunge il punto delle migliaia "all'italiana" (es. 2000 -> "2.000").
     // Non usiamo toLocaleString: in alcuni browser, per i numeri a 4 cifre

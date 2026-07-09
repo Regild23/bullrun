@@ -200,23 +200,30 @@
     // Ogni settimana arriva questo bonus in liquidità, a tutti, senza eccezioni:
     // così anche chi ha perso tutto può sempre continuare a giocare.
     const BONUS_SETTIMANALE = 2000;
-    // Gli eventi: ognuno cambia i prezzi degli asset (in frazione: 0.03 = +3%)
+    // La liquidità NON reagisce agli eventi di mercato (sta ferma in un conto),
+    // ma l'inflazione la erode piano piano: circa il 3% all'anno, in modo
+    // costante. "Soldi fermi sono soldi morti" - è l'unico asset che perde
+    // valore garantito, invece di andare a caso come gli altri.
+    const INFLAZIONE_ANNUA = 0.03;
+    const EROSIONE_SETTIMANALE = Math.pow(1 - INFLAZIONE_ANNUA, 1 / 52);
+    // Gli eventi: ognuno cambia i prezzi degli asset (in frazione: 0.03 = +3%).
+    // La liquidità non è tra le chiavi qui sotto apposta: vedi EROSIONE_SETTIMANALE.
     const EVENTS = [
       { title:'La BCE alza i tassi di interesse', icon:'newspaper',
         body:'Prendere prestiti costa di più: le aziende rallentano, ma le obbligazioni rendono di più.',
-        fx:{ bond:0.03, stock:-0.05, crypto:-0.07, etf:-0.02, realestate:-0.01, cash:0.001 } },
+        fx:{ bond:0.03, stock:-0.05, crypto:-0.07, etf:-0.02, realestate:-0.01 } },
       { title:"Boom dell'intelligenza artificiale", icon:'cpu',
         body:'Le aziende tech volano. Azioni ed ETF ne traggono vantaggio, e anche le crypto salgono.',
-        fx:{ stock:0.08, etf:0.05, crypto:0.06, bond:-0.01, realestate:0.01, cash:0 } },
+        fx:{ stock:0.08, etf:0.05, crypto:0.06, bond:-0.01, realestate:0.01 } },
       { title:"L'inflazione torna a scendere", icon:'trending-down',
         body:'I prezzi crescono più lentamente: buone notizie per azioni e immobili.',
-        fx:{ stock:0.04, realestate:0.03, etf:0.03, bond:0.01, crypto:0.02, cash:-0.002 } },
+        fx:{ stock:0.04, realestate:0.03, etf:0.03, bond:0.01, crypto:0.02 } },
       { title:'Crollo improvviso di una grande crypto', icon:'zap',
         body:'Il panico colpisce il mercato cripto. Chi era diversificato sente meno il colpo.',
-        fx:{ crypto:-0.18, stock:-0.02, etf:-0.01, bond:0.01, realestate:0, cash:0 } },
+        fx:{ crypto:-0.18, stock:-0.02, etf:-0.01, bond:0.01, realestate:0 } },
       { title:'Nuovi incentivi per la casa', icon:'building-2',
         body:'Il governo sostiene il mercato immobiliare. Gli immobili si rivalutano.',
-        fx:{ realestate:0.06, bond:0.01, stock:0.01, etf:0.01, crypto:-0.01, cash:0 } },
+        fx:{ realestate:0.06, bond:0.01, stock:0.01, etf:0.01, crypto:-0.01 } },
     ];
 
     // ====== LO STATO (cambia mentre giochi) ======
@@ -238,7 +245,13 @@
     function formattaNumero(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
     const eur = n => '€ ' + formattaNumero(n);
     const total = () => Object.values(holdings).reduce((a,b) => a+b, 0);
-    function assetDelta(id) { const d = ((holdings[id]-prev[id]) / (prev[id]||1)) * 100; return (d>=0?'+':'') + d.toFixed(1) + '%'; }
+    function assetDelta(id) {
+      // La liquidità mostra sempre la stessa percentuale fissa di erosione:
+      // il bonus settimanale è un deposito, non un "guadagno" della liquidità
+      // in sé, quindi non deve nascondere la perdita di valore per inflazione.
+      if (id === 'cash') return ((EROSIONE_SETTIMANALE - 1) * 100).toFixed(2) + '%';
+      const d = ((holdings[id]-prev[id]) / (prev[id]||1)) * 100; return (d>=0?'+':'') + d.toFixed(1) + '%';
+    }
     // Dall'evento ricava le 3-4 etichette d'impatto più forti
     function impactsFromFx(fx) {
       return Object.entries(fx).filter(([,v]) => Math.abs(v) >= 0.02)
@@ -312,12 +325,17 @@
       const next = EVENTS[(eventIdx+1) % EVENTS.length];
       const nh = {};
       for (const a of ASSET_DEFS) {
+        if (a.id === 'cash') {
+          // La liquidità non segue il mercato: perde valore solo per l'inflazione.
+          nh.cash = holdings.cash * EROSIONE_SETTIMANALE;
+          continue;
+        }
         const drift = (Math.random() - 0.45) * 0.03;      // un po' di casualità
         const f = (next.fx[a.id] || 0) + drift;
         nh[a.id] = Math.max(0, holdings[a.id] * (1 + f));
       }
-      // Il bonus arriva DOPO il movimento di mercato: è denaro fresco,
-      // non è "investito" e quindi non lo tocca l'evento di questa settimana.
+      // Il bonus arriva DOPO l'inflazione: è denaro fresco appena ricevuto,
+      // non è "invecchiato" e quindi non lo tocca l'erosione di questa settimana.
       nh.cash += BONUS_SETTIMANALE;
 
       prev = holdings; holdings = nh;
