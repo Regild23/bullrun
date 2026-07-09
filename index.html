@@ -37,6 +37,11 @@
     </div>
   </header>
 
+  <!-- ===== TICKER (banda scorrevole, valori illustrativi) ===== -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__track" id="ticker-track"></div>
+  </div>
+
   <!-- ===== HERO ===== -->
   <section class="hero" id="top">
     <span class="hero__glow hero__glow--a"></span>
@@ -149,16 +154,16 @@
     </div>
   </section>
 
-  <!-- ===== EVENTO DELLA SETTIMANA ===== -->
+  <!-- ===== EVENTI DI MERCATO ===== -->
   <section class="section">
     <div class="section__inner">
       <div class="section__head">
-        <span class="br-eyebrow">Evento della settimana</span>
+        <span class="br-eyebrow">Eventi di mercato</span>
         <h2 class="section__title">Il mercato ti mette alla prova</h2>
       </div>
-      <div style="max-width:560px; margin:0 auto; display:flex; flex-direction:column; gap:24px; align-items:center;">
-        <div class="event" style="width:100%;">
-          <div class="event__kicker"><span class="dot"></span><span>Evento della settimana</span></div>
+      <div class="grid-2" style="max-width:960px; margin:0 auto;">
+        <div class="event">
+          <div class="event__kicker"><span class="dot"></span><span>Notizia di mercato</span></div>
           <div class="event__row">
             <span class="event__icon"><i data-lucide="newspaper"></i></span>
             <div>
@@ -172,7 +177,21 @@
             <span class="event__chip event__chip--down"><span class="lab">Crypto</span><span class="val">▾ -7%</span></span>
           </div>
         </div>
-        <a href="login.html"><button class="btn btn--neon"><i data-lucide="calendar-arrow-down"></i> Avanza settimana</button></a>
+        <div class="event">
+          <div class="event__kicker"><span class="dot"></span><span>Notizia di mercato</span></div>
+          <div class="event__row">
+            <span class="event__icon"><i data-lucide="cpu"></i></span>
+            <div>
+              <h4 class="event__title">Boom dell'intelligenza artificiale</h4>
+              <p class="event__body">Le aziende tech volano. Azioni ed ETF ne traggono vantaggio, e anche le crypto salgono.</p>
+            </div>
+          </div>
+          <div class="event__impacts">
+            <span class="event__chip event__chip--up"><span class="lab">Azioni</span><span class="val">▴ +8%</span></span>
+            <span class="event__chip event__chip--up"><span class="lab">Crypto</span><span class="val">▴ +6%</span></span>
+            <span class="event__chip event__chip--up"><span class="lab">ETF</span><span class="val">▴ +5%</span></span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -439,6 +458,26 @@
     const cardSkin = s => '<div class="skin-card"><img src="assets/skin/' + s.file + '" alt="Skin ' + s.nome + '" loading="lazy">'
       + '<div class="nome">' + s.nome + '</div><div class="stato">Da collezionare</div></div>';
     trackSkin.innerHTML = SKIN.map(cardSkin).join('') + SKIN.map(cardSkin).join('');
+
+    // Il ticker in alto: valori ILLUSTRATIVI (non un collegamento a dati di
+    // mercato reali), solo per dare atmosfera da "notizie finanziarie".
+    const TICKER = [
+      { nome: 'DOW JONES', val: '42.860,15', delta: '+0,42%', su: true },
+      { nome: 'S&P 500', val: '5.815,03', delta: '+0,31%', su: true },
+      { nome: 'NASDAQ', val: '18.342,70', delta: '+0,58%', su: true },
+      { nome: 'FTSE MIB', val: '34.210,40', delta: '-0,18%', su: false },
+      { nome: 'DAX', val: '19.480,60', delta: '+0,27%', su: true },
+      { nome: 'BITCOIN', val: '€ 61.450', delta: '+2,14%', su: true },
+      { nome: 'ETHEREUM', val: '€ 3.280', delta: '+1,47%', su: true },
+      { nome: 'SOLANA', val: '€ 142,30', delta: '-3,62%', su: false },
+      { nome: 'ORO', val: '€ 2.340', delta: '+0,12%', su: true },
+      { nome: 'EUR/USD', val: '1,0842', delta: '-0,05%', su: false },
+    ];
+    const trackTicker = document.getElementById('ticker-track');
+    const voceTicker = t => '<span class="ticker__item"><span class="ticker__nome">' + t.nome + '</span>'
+      + '<span class="ticker__val">' + t.val + '</span>'
+      + '<span class="ticker__delta ticker__delta--' + (t.su ? 'up' : 'down') + '">' + (t.su ? '▴' : '▾') + ' ' + t.delta + '</span></span>';
+    trackTicker.innerHTML = TICKER.map(voceTicker).join('') + TICKER.map(voceTicker).join('');
   </script>
 </body>
 </html>

@@ -120,6 +120,18 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
 .event__chip--up { background: var(--br-up-soft); } .event__chip--up .val { color: var(--br-up); }
 .event__chip--down { background: var(--br-down-soft); } .event__chip--down .val { color: var(--br-down); }
 
+/* ---------------- TICKER (banda scorrevole stile breaking news) ---------------- */
+/* Valori illustrativi/decorativi, non un feed di mercato reale in tempo reale. */
+.ticker { overflow: hidden; background: var(--br-bg-2); border-bottom: 1px solid var(--br-line); }
+.ticker__track { display: flex; gap: 40px; width: max-content; padding: 9px 0; animation: scorri-ticker 42s linear infinite; }
+.ticker__item { display: inline-flex; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-size: 12.5px; white-space: nowrap; }
+.ticker__nome { color: var(--br-text-dim); font-weight: 600; letter-spacing: 0.04em; }
+.ticker__val { color: var(--br-text); font-weight: 700; }
+.ticker__delta { font-weight: 600; }
+.ticker__delta--up { color: var(--br-up); }
+.ticker__delta--down { color: var(--br-down); }
+@keyframes scorri-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
 /* ---------------- NAVBAR ---------------- */
 .nav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
   padding: 14px 32px; background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--br-line); }
