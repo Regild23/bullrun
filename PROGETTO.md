@@ -202,6 +202,7 @@ bullrun/
 ├── script.js           # Logica del gioco (commentata in italiano)
 ├── README.md           # Guida "come funziona" per la Sessione 1
 ├── PROGETTO.md         # ← QUESTO file (fonte di verità)
+├── DIARIO-SVILUPPO.md  # Racconto passo-passo dello sviluppo (base per le slide)
 ├── mockup/
 │   └── dashboard.html  # Bozza dashboard stile GameFi
 └── design/
