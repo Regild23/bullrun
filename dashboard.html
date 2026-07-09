@@ -4,7 +4,9 @@
   BullRun · Dashboard (il gioco vero e proprio)
   ============================================================
   La "postazione di controllo": vedi il patrimonio, scegli gli asset,
-  premi "Avanza mese" e il mercato reagisce all'evento.
+  premi "Avanza settimana" e il mercato reagisce all'evento.
+  Ogni settimana ricevi anche un bonus fisso in liquidità: così, anche
+  se hai perso tutto, puoi sempre continuare a giocare.
   La logica di gioco (lo "stato") è nello <script> in fondo.
 -->
 <html lang="it">
@@ -97,7 +99,7 @@
         <span class="topbar__name"><span class="br-gradient-text">Bull</span>Run</span>
       </a>
       <div class="topbar__right">
-        <span class="badge"><span class="badge__dot"></span>Mese <span id="tb-mese">7</span></span>
+        <span class="badge"><span class="badge__dot"></span>Settimana <span id="tb-settimana">7</span></span>
         <span class="cash-pill"><i data-lucide="wallet"></i><span id="tb-cash">€ 1.200</span> liquidi</span>
         <button class="icon-btn" title="Classifica"><i data-lucide="trophy"></i></button>
         <button class="icon-btn" title="Notifiche"><i data-lucide="bell"></i></button>
@@ -141,7 +143,7 @@
           <div class="minis">
             <div><div class="mini__label">Capitale iniziale</div><div class="mini__value">€ 10.000</div></div>
             <div><div class="mini__label">Guadagno totale</div><div class="mini__value" id="ms-gain">€ 1.480</div></div>
-            <div><div class="mini__label">Mese di gioco</div><div class="mini__value" id="ms-month">#7</div></div>
+            <div><div class="mini__label">Settimana di gioco</div><div class="mini__value" id="ms-settimana">#7</div></div>
           </div>
         </div>
 
@@ -165,7 +167,7 @@
         </div>
 
         <div class="event" id="event">
-          <div class="event__kicker"><span class="dot"></span><span>Evento del mese</span></div>
+          <div class="event__kicker"><span class="dot"></span><span>Evento della settimana</span></div>
           <div class="event__row">
             <span class="event__icon" id="ev-icon"><i data-lucide="newspaper"></i></span>
             <div><h4 class="event__title" id="ev-title">—</h4><p class="event__body" id="ev-body">—</p></div>
@@ -174,9 +176,9 @@
         </div>
 
         <div class="card" style="padding:20px;">
-          <div class="turno-head"><span class="br-eyebrow">Turno</span><span class="v" id="turno-mesi">Mese 7 → 8</span></div>
-          <button class="btn btn--primary btn--lg" id="avanza" style="width:100%;">Avanza mese <i data-lucide="calendar-arrow-down"></i></button>
-          <p class="turno-note">Il mercato reagisce all'evento e guadagni <b>+35 XP</b>.</p>
+          <div class="turno-head"><span class="br-eyebrow">Turno</span><span class="v" id="turno-settimane">Settimana 7 → 8</span></div>
+          <button class="btn btn--primary btn--lg" id="avanza" style="width:100%;">Avanza settimana <i data-lucide="calendar-arrow-down"></i></button>
+          <p class="turno-note">Ricevi <b>+€ 2.000</b> di bonus e guadagni <b>+35 XP</b>.</p>
         </div>
       </aside>
     </main>
@@ -195,6 +197,9 @@
     ];
     // Quanti soldi ci sono in ogni asset all'inizio
     const START = { cash:1200, bond:1850, etf:3400, stock:1980, crypto:2150, realestate:1900 };
+    // Ogni settimana arriva questo bonus in liquidità, a tutti, senza eccezioni:
+    // così anche chi ha perso tutto può sempre continuare a giocare.
+    const BONUS_SETTIMANALE = 2000;
     // Gli eventi: ognuno cambia i prezzi degli asset (in frazione: 0.03 = +3%)
     const EVENTS = [
       { title:'La BCE alza i tassi di interesse', icon:'newspaper',
@@ -215,9 +220,9 @@
     ];
 
     // ====== LO STATO (cambia mentre giochi) ======
-    let month = 7;
+    let settimana = 7;
     let holdings = { ...START };
-    let prev = { ...START };          // valori del mese scorso (per calcolare i guadagni)
+    let prev = { ...START };          // valori della settimana scorsa (per calcolare i guadagni)
     let eventIdx = 0;
     let xp = 740;
     let history = [10000, 10420, 10180, 10890, 11240, 11020, 11480];
@@ -227,7 +232,11 @@
     let sel = validIds.includes(location.hash.replace('#','')) ? location.hash.replace('#','') : 'crypto';
 
     // ====== AIUTANTI ======
-    const eur = n => '€ ' + Math.round(n).toLocaleString('it-IT');
+    // Punto delle migliaia "all'italiana" fatto a mano: toLocaleString('it-IT'),
+    // in alcuni browser, per i numeri a 4 cifre (1000-9999) a volte non mette
+    // il punto (es. "2000" invece di "2.000"). Così è sempre affidabile.
+    function formattaNumero(n) { return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+    const eur = n => '€ ' + formattaNumero(n);
     const total = () => Object.values(holdings).reduce((a,b) => a+b, 0);
     function assetDelta(id) { const d = ((holdings[id]-prev[id]) / (prev[id]||1)) * 100; return (d>=0?'+':'') + d.toFixed(1) + '%'; }
     // Dall'evento ricava le 3-4 etichette d'impatto più forti
@@ -255,7 +264,7 @@
       const prevTotal = Object.values(prev).reduce((a,b)=>a+b,0);
       const tDelta = ((t-prevTotal)/prevTotal) * 100;
 
-      document.getElementById('tb-mese').textContent = month;
+      document.getElementById('tb-settimana').textContent = settimana;
       document.getElementById('tb-cash').textContent = eur(holdings.cash);
 
       document.getElementById('patrimonio').textContent = eur(t);
@@ -266,7 +275,7 @@
       const gain = t - 10000;
       const mg = document.getElementById('ms-gain');
       mg.textContent = eur(gain); mg.style.color = gain>=0 ? 'var(--br-up)' : 'var(--br-down)';
-      document.getElementById('ms-month').textContent = '#' + month;
+      document.getElementById('ms-settimana').textContent = '#' + settimana;
 
       renderSparkline();
 
@@ -282,7 +291,7 @@
           + '</button>';
       }).join('');
 
-      // L'evento del mese
+      // L'evento della settimana
       const ev = EVENTS[eventIdx];
       document.getElementById('ev-title').textContent = ev.title;
       document.getElementById('ev-body').textContent = ev.body;
@@ -293,12 +302,12 @@
 
       document.getElementById('xp-text').textContent = xp + ' / 1000 XP';
       document.getElementById('xp-fill').style.width = (xp/10) + '%';
-      document.getElementById('turno-mesi').textContent = 'Mese ' + month + ' → ' + (month+1);
+      document.getElementById('turno-settimane').textContent = 'Settimana ' + settimana + ' → ' + (settimana+1);
 
       lucide.createIcons();
     }
 
-    // ====== AVANZA DI UN MESE ======
+    // ====== AVANZA DI UNA SETTIMANA ======
     function advance() {
       const next = EVENTS[(eventIdx+1) % EVENTS.length];
       const nh = {};
@@ -307,10 +316,14 @@
         const f = (next.fx[a.id] || 0) + drift;
         nh[a.id] = Math.max(0, holdings[a.id] * (1 + f));
       }
+      // Il bonus arriva DOPO il movimento di mercato: è denaro fresco,
+      // non è "investito" e quindi non lo tocca l'evento di questa settimana.
+      nh.cash += BONUS_SETTIMANALE;
+
       prev = holdings; holdings = nh;
       history = history.slice(-11).concat(Object.values(nh).reduce((x,y)=>x+y,0));
       eventIdx = (eventIdx+1) % EVENTS.length;
-      month++;
+      settimana++;
       xp = Math.min(1000, xp + 35);
       render();
     }
