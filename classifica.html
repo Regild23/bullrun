@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BullRun · Classifica (Stagione 1)
+  ============================================================
+  Per ora mostra dati di ESEMPIO: non c'è ancora un backend che
+  calcola la classifica vera dei giocatori (arriverà con Supabase
+  + multiplayer). La struttura della pagina però è già quella
+  definitiva: quando i dati reali ci saranno, si sostituisce solo
+  il contenuto generato dal <script> in fondo.
+-->
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullRun · Classifica Stagione 1</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <style>
+    .ctop { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 18px;
+      padding: 14px 24px; background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--br-line); }
+    .ctop .back { display: inline-flex; align-items: center; gap: 6px; color: var(--br-text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .ctop .back:hover { color: var(--br-text); }
+    .ctop .back svg.lucide { width: 16px; height: 16px; }
+    .ctop .brand { display: flex; align-items: center; gap: 9px; }
+    .ctop .brand img { height: 28px; filter: drop-shadow(0 0 10px rgba(37,228,212,0.35)); }
+    .ctop .brand span { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--br-text); }
+
+    .cwrap { max-width: 720px; margin: 0 auto; padding: 34px 24px 60px; display: flex; flex-direction: column; gap: 24px; }
+    .chead { text-align: center; }
+    .chead h1 { margin: 10px 0 8px; font-family: var(--font-display); font-size: 34px; font-weight: 700; color: var(--br-text); }
+    .chead p { margin: 0; color: var(--br-text-muted); font-size: 15px; }
+
+    .podio--grande .podio__item { padding: 26px 18px 22px; }
+    .podio--grande .podio__pos { width: 36px; height: 36px; font-size: 16px; }
+    .podio--grande .podio__nome { font-size: 16px; }
+    .podio--grande .podio__valore { font-size: 14px; }
+
+    #lista-classifica { display: flex; flex-direction: column; }
+  </style>
+</head>
+<body class="br-grid-bg">
+
+  <header class="ctop">
+    <a class="back" href="hub.html"><i data-lucide="arrow-left"></i> Cameretta</a>
+    <div class="brand"><img src="assets/logo.png" alt=""><span>Classifica</span></div>
+  </header>
+
+  <main class="cwrap">
+    <div class="chead">
+      <span class="br-eyebrow">Stagione 1</span>
+      <h1>Chi guida la classifica</h1>
+      <p>Alla fine della stagione, ai primi 3 investitori va un premio.</p>
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown" id="countdown">
+      <div class="countdown__tile"><div class="countdown__num" id="cd-giorni">–</div><div class="countdown__lab">Giorni</div></div>
+      <div class="countdown__tile"><div class="countdown__num" id="cd-ore">–</div><div class="countdown__lab">Ore</div></div>
+      <div class="countdown__tile"><div class="countdown__num" id="cd-min">–</div><div class="countdown__lab">Minuti</div></div>
+      <div class="countdown__tile"><div class="countdown__num" id="cd-sec">–</div><div class="countdown__lab">Secondi</div></div>
+    </div>
+
+    <div style="text-align:center;">
+      <span class="anteprima-pill"><i data-lucide="flask-conical"></i> Dati di esempio — la classifica live arriva con il multiplayer</span>
+    </div>
+
+    <!-- Podio (i primi 3) -->
+    <div class="podio podio--grande" id="podio"></div>
+
+    <!-- Il resto della classifica -->
+    <div id="lista-classifica"></div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // Countdown fino alla fine della Stagione 1 (stesso traguardo della landing).
+    const FINE_STAGIONE = new Date('2027-06-07T23:59:59');
+    function aggiornaCountdown() {
+      const restante = FINE_STAGIONE - new Date();
+      const giorni = Math.max(0, Math.floor(restante / 86400000));
+      const ore = Math.max(0, Math.floor((restante / 3600000) % 24));
+      const minuti = Math.max(0, Math.floor((restante / 60000) % 60));
+      const secondi = Math.max(0, Math.floor((restante / 1000) % 60));
+      const due = n => String(n).padStart(2, '0');
+      document.getElementById('cd-giorni').textContent = giorni;
+      document.getElementById('cd-ore').textContent = due(ore);
+      document.getElementById('cd-min').textContent = due(minuti);
+      document.getElementById('cd-sec').textContent = due(secondi);
+    }
+    aggiornaCountdown();
+    setInterval(aggiornaCountdown, 1000);
+
+    // ====== DATI DI ESEMPIO (non reali) ======
+    // Quando ci sarà il backend, questa lista arriverà da Supabase.
+    const GIOCATORI = [
+      { nome: 'MarcoBull',       patrimonio: 214500 },
+      { nome: 'SaraInvest',      patrimonio: 198200 },
+      { nome: 'Luca_ETF',        patrimonio: 187900 },
+      { nome: 'GiuliaCrypto',    patrimonio: 176400 },
+      { nome: 'Il_Toro_Nero',    patrimonio: 168100 },
+      { nome: 'Federico99',      patrimonio: 159700 },
+      { nome: 'AnnaBTP',         patrimonio: 152300 },
+      { nome: 'Matteo_Investe',  patrimonio: 145800 },
+      { nome: 'ChiaraW',         patrimonio: 138600 },
+      { nome: 'DavideRischia',   patrimonio: 129400 },
+      { nome: 'SofiaFinance',    patrimonio: 121700 },
+      { nome: 'LorenzoBull',     patrimonio: 113200 },
+      { nome: 'GiadaTrend',      patrimonio: 108500 },
+      { nome: 'Nicola_HODL',     patrimonio: 101900 },
+      { nome: 'ElisaEconomia',   patrimonio: 94300 },
+    ];
+    const eur = n => '€ ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    // Podio: i primi 3, in ordine oro-argento-bronzo (l'ordine visivo lo fa il CSS).
+    const [primo, secondo, terzo] = GIOCATORI;
+    document.getElementById('podio').innerHTML = `
+      <div class="podio__item podio__item--oro"><span class="podio__pos">1</span><span class="podio__nome">${primo.nome}</span><span class="podio__valore">${eur(primo.patrimonio)}</span></div>
+      <div class="podio__item podio__item--argento"><span class="podio__pos">2</span><span class="podio__nome">${secondo.nome}</span><span class="podio__valore">${eur(secondo.patrimonio)}</span></div>
+      <div class="podio__item podio__item--bronzo"><span class="podio__pos">3</span><span class="podio__nome">${terzo.nome}</span><span class="podio__valore">${eur(terzo.patrimonio)}</span></div>
+    `;
+
+    // Il resto della lista, dal 4° posto in poi.
+    document.getElementById('lista-classifica').innerHTML = GIOCATORI.slice(3).map((g, i) => `
+      <div class="classifica-riga">
+        <span class="classifica-riga__pos">${i + 4}</span>
+        <span class="classifica-riga__nome">${g.nome}</span>
+        <span class="classifica-riga__valore">${eur(g.patrimonio)}</span>
+      </div>
+    `).join('');
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>

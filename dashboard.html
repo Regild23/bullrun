@@ -101,7 +101,7 @@
       <div class="topbar__right">
         <span class="badge"><span class="badge__dot"></span>Settimana <span id="tb-settimana">7</span></span>
         <span class="cash-pill"><i data-lucide="wallet"></i><span id="tb-cash">€ 1.200</span> liquidi</span>
-        <button class="icon-btn" title="Classifica"><i data-lucide="trophy"></i></button>
+        <a class="icon-btn" href="classifica.html" title="Classifica"><i data-lucide="trophy"></i></a>
         <button class="icon-btn" title="Notifiche"><i data-lucide="bell"></i></button>
         <div class="av av--40"><div class="ring"><div class="face">LM</div></div><span class="lvl">7</span></div>
       </div>
@@ -141,7 +141,7 @@
             </svg>
           </div>
           <div class="minis">
-            <div><div class="mini__label">Capitale iniziale</div><div class="mini__value">€ 10.000</div></div>
+            <div><div class="mini__label">Capitale iniziale</div><div class="mini__value">€ 100.000</div></div>
             <div><div class="mini__label">Guadagno totale</div><div class="mini__value" id="ms-gain">€ 1.480</div></div>
             <div><div class="mini__label">Settimana di gioco</div><div class="mini__value" id="ms-settimana">#7</div></div>
           </div>
@@ -196,7 +196,7 @@
       { id:'realestate', name:'Immobili', accent:'var(--br-realestate)', icon:'building-2' },
     ];
     // Quanti soldi ci sono in ogni asset all'inizio
-    const START = { cash:1200, bond:1850, etf:3400, stock:1980, crypto:2150, realestate:1900 };
+    const START = { cash:12000, bond:18500, etf:34000, stock:19800, crypto:21500, realestate:19000 };
     // Ogni settimana arriva questo bonus in liquidità, a tutti, senza eccezioni:
     // così anche chi ha perso tutto può sempre continuare a giocare.
     const BONUS_SETTIMANALE = 2000;
@@ -225,7 +225,7 @@
     let prev = { ...START };          // valori della settimana scorsa (per calcolare i guadagni)
     let eventIdx = 0;
     let xp = 740;
-    let history = [10000, 10420, 10180, 10890, 11240, 11020, 11480];
+    let history = [100000, 104200, 101800, 108900, 112400, 110200, 114800];
 
     // Se arrivi da un oggetto dell'Hub (es. #crypto), partiamo con quell'asset selezionato
     const validIds = ASSET_DEFS.map(a => a.id);
@@ -272,7 +272,7 @@
       pd.textContent = (tDelta<0?'▾ ':'▴ ') + (tDelta>=0?'+':'') + tDelta.toFixed(1) + '%';
       pd.className = 'stat__delta' + (tDelta<0 ? ' stat__delta--down' : '');
 
-      const gain = t - 10000;
+      const gain = t - 100000;
       const mg = document.getElementById('ms-gain');
       mg.textContent = eur(gain); mg.style.color = gain>=0 ? 'var(--br-up)' : 'var(--br-down)';
       document.getElementById('ms-settimana').textContent = '#' + settimana;

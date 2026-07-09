@@ -197,6 +197,53 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
 .cta h2 { margin: 0 0 12px; font-family: var(--font-display); font-size: 40px; font-weight: 700; letter-spacing: -0.02em; color: var(--br-text); position: relative; }
 .cta p { margin: 0 auto 28px; font-size: 17px; color: var(--br-text-muted); max-width: 480px; position: relative; }
 
+/* ---------------- STAGIONE / CONTATORE ---------------- */
+.season { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.season__prize { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--br-text-muted); margin-top: 10px; }
+.season__prize svg.lucide { width: 17px; height: 17px; color: var(--br-warn); }
+.countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+.countdown__tile { background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg); padding: 16px 8px; text-align: center; }
+.countdown__num { font-family: var(--font-mono); font-weight: 700; font-size: 34px; color: var(--br-text); text-shadow: var(--glow-text-teal); }
+.countdown__lab { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--br-text-dim); margin-top: 4px; }
+
+/* ---------------- CLASSIFICA / PODIO ---------------- */
+.anteprima-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.06); border: 1px solid var(--br-line-strong); font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--br-text-dim); }
+
+.podio { display: flex; align-items: flex-end; gap: 14px; justify-content: center; }
+.podio__item { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 14px 16px;
+  background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg); flex: 1; }
+.podio__pos { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: var(--br-ink); }
+.podio__nome { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--br-text); }
+.podio__valore { font-family: var(--font-mono); font-size: 13px; color: var(--br-up); }
+.podio__item--oro { order: 2; padding-top: 6px; box-shadow: var(--glow-green); }
+.podio__item--oro .podio__pos { background: var(--br-green); }
+.podio__item--argento { order: 1; box-shadow: 0 0 0 1px rgba(200,210,225,.4), 0 0 20px rgba(200,210,225,.22); }
+.podio__item--argento .podio__pos { background: #C8D2E1; }
+.podio__item--bronzo { order: 3; box-shadow: 0 0 0 1px rgba(205,127,79,.4), 0 0 20px rgba(205,127,79,.22); }
+.podio__item--bronzo .podio__pos { background: #CD7F4F; }
+
+.classifica-riga { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: var(--radius-md);
+  background: var(--br-surface); border: 1px solid var(--br-line); }
+.classifica-riga + .classifica-riga { margin-top: 8px; }
+.classifica-riga__pos { width: 26px; text-align: center; font-family: var(--font-mono); font-weight: 700; color: var(--br-text-dim); }
+.classifica-riga__nome { flex: 1; font-family: var(--font-display); font-weight: 600; font-size: 14.5px; color: var(--br-text); }
+.classifica-riga__valore { font-family: var(--font-mono); font-size: 14px; color: var(--br-up); }
+
+/* ---------------- CAROSELLO SKIN ---------------- */
+.skin-carousel { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.skin-track { display: flex; gap: 20px; width: max-content; animation: scorri-skin 32s linear infinite; }
+.skin-carousel:hover .skin-track { animation-play-state: paused; }
+.skin-card { width: 150px; flex: none; background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg);
+  padding: 14px; text-align: center; }
+.skin-card img { width: 100%; height: 110px; object-fit: contain; filter: drop-shadow(0 0 14px rgba(37,228,212,0.25)); }
+.skin-card .nome { margin-top: 8px; font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--br-text); }
+.skin-card .stato { margin-top: 3px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--br-text-dim); }
+@keyframes scorri-skin { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
 /* ---------------- FOOTER ---------------- */
 .footer { border-top: 1px solid var(--br-line); padding: 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 .footer__brand { display: flex; align-items: center; gap: 10px; }
@@ -216,6 +263,7 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
   .grid-4 { grid-template-columns: 1fr 1fr; }
   .nav__menu { display: none; }
   .hero__preview .float-logo { width: 100px; top: -76px; right: 4px; }
+  .season { grid-template-columns: 1fr; }
 }
 @media (max-width: 540px) {
   .wrap, .nav, .hero, .section, .cta { padding-left: 18px; padding-right: 18px; }
@@ -224,4 +272,10 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
   .section__title { font-size: 28px; }
   .hero__stats { flex-wrap: wrap; gap: 18px; }
   .footer { flex-direction: column; align-items: flex-start; }
+  .countdown { grid-template-columns: repeat(2, 1fr); }
+  .countdown__num { font-size: 26px; }
+  .podio { flex-direction: column; align-items: stretch; }
+  .podio__item--oro, .podio__item--argento, .podio__item--bronzo { order: 0; }
+  .skin-card { width: 120px; }
+  .skin-card img { height: 88px; }
 }
