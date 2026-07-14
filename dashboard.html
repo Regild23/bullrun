@@ -196,7 +196,9 @@
       { id:'realestate', name:'Immobili', accent:'var(--br-realestate)', icon:'building-2' },
     ];
     // Quanti soldi ci sono in ogni asset all'inizio
-    const START = { cash:12000, bond:18500, etf:34000, stock:19800, crypto:21500, realestate:19000 };
+    // ⚠️ VALORE DI TEST: liquidità a 100.000.000 per provare l'apertura delle
+    // scatole senza limiti. Riportare a 12000 quando i test sono finiti.
+    const START = { cash:100000000, bond:18500, etf:34000, stock:19800, crypto:21500, realestate:19000 };
     // Ogni settimana arriva questo bonus in liquidità, a tutti, senza eccezioni:
     // così anche chi ha perso tutto può sempre continuare a giocare.
     const BONUS_SETTIMANALE = 2000;
