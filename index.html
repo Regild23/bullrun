@@ -113,9 +113,9 @@
     <div class="section__inner">
       <div class="section__head">
         <span class="br-eyebrow">Come funziona</span>
-        <h2 class="section__title">Quattro mosse e sei dentro il gioco</h2>
+        <h2 class="section__title">Tre mosse e sei dentro il gioco</h2>
       </div>
-      <div class="grid-4">
+      <div class="grid-3">
         <div class="card step">
           <div class="step__top"><span class="step__icon"><i data-lucide="wallet"></i></span><span class="step__num br-mono">01</span></div>
           <h3>Ricevi 100.000 € virtuali</h3>
@@ -127,12 +127,7 @@
           <p>Liquidità, BTP, ETF, azioni, crypto e immobili: ognuno reagisce in modo diverso.</p>
         </div>
         <div class="card step">
-          <div class="step__top"><span class="step__icon"><i data-lucide="calendar-clock"></i></span><span class="step__num br-mono">03</span></div>
-          <h3>Avanza di una settimana</h3>
-          <p>Ogni mossa ti fa guadagnare XP e salire di livello, settimana dopo settimana.</p>
-        </div>
-        <div class="card step">
-          <div class="step__top"><span class="step__icon"><i data-lucide="trophy"></i></span><span class="step__num br-mono">04</span></div>
+          <div class="step__top"><span class="step__icon"><i data-lucide="trophy"></i></span><span class="step__num br-mono">03</span></div>
           <h3>Scala la classifica</h3>
           <p>Confronta il tuo patrimonio con gli altri giocatori e punta al podio di fine stagione.</p>
         </div>
@@ -299,8 +294,36 @@
     </div>
   </section>
 
+  <!-- ===== CONTATTACI ===== -->
+  <section class="section" id="contatti">
+    <div class="section__inner">
+      <div class="section__head" style="text-align:center;">
+        <span class="br-eyebrow">Contattaci</span>
+        <h2 class="section__title">Hai una domanda? Scrivici.</h2>
+      </div>
+      <form class="contact-form" id="form-contatti">
+        <div class="contact-form__row">
+          <div class="field">
+            <label for="c-nome">Nome</label>
+            <input type="text" id="c-nome" required placeholder="Il tuo nome">
+          </div>
+          <div class="field">
+            <label for="c-email">Email</label>
+            <input type="email" id="c-email" required placeholder="latua@email.it">
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-messaggio">Messaggio</label>
+          <textarea id="c-messaggio" required rows="5" placeholder="Scrivi qui la tua domanda..."></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary btn--lg" style="align-self:center;">Invia messaggio <i data-lucide="send"></i></button>
+        <p class="contact-form__hint">Si apre il tuo programma di posta, già pronto per scrivere a info@infomaat.it.</p>
+      </form>
+    </div>
+  </section>
+
   <!-- ===== FOOTER ===== -->
-  <footer class="footer" id="contatti">
+  <footer class="footer">
     <div class="footer__brand">
       <img src="assets/logo.png" alt="">
       <span class="name">BullRun</span>
@@ -478,6 +501,19 @@
       + '<span class="ticker__val">' + t.val + '</span>'
       + '<span class="ticker__delta ticker__delta--' + (t.su ? 'up' : 'down') + '">' + (t.su ? '▴' : '▾') + ' ' + t.delta + '</span></span>';
     trackTicker.innerHTML = TICKER.map(voceTicker).join('') + TICKER.map(voceTicker).join('');
+
+    // Form "Contattaci": non abbiamo un server che spedisce email, quindi
+    // apriamo il programma di posta del visitatore già compilato. Semplice
+    // e senza bisogno di servizi esterni.
+    document.getElementById('form-contatti').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const nome = document.getElementById('c-nome').value.trim();
+      const email = document.getElementById('c-email').value.trim();
+      const messaggio = document.getElementById('c-messaggio').value.trim();
+      const oggetto = encodeURIComponent('Messaggio da BullRun — ' + nome);
+      const corpo = encodeURIComponent(messaggio + '\n\n— ' + nome + ' (' + email + ')');
+      window.location.href = 'mailto:info@infomaat.it?subject=' + oggetto + '&body=' + corpo;
+    });
   </script>
 </body>
 </html>

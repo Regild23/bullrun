@@ -198,6 +198,17 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
 .events__text p { margin: 0 0 20px; font-size: 16px; line-height: 1.65; color: var(--br-text-muted); }
 .events__hint { font-size: 13px; color: var(--br-text-dim); }
 
+/* ---------------- FORM CONTATTI ---------------- */
+.contact-form { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.contact-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field label { display: block; font-size: 13px; color: var(--br-text-muted); margin-bottom: 6px; }
+.field input, .field textarea {
+  width: 100%; background: var(--br-surface-3); border: 1px solid var(--br-line); border-radius: var(--radius-md);
+  padding: 12px 14px; color: var(--br-text); font-size: 15px; font-family: var(--font-body); resize: vertical; }
+.field input:focus, .field textarea:focus {
+  outline: none; border-color: var(--br-line-neon); box-shadow: 0 0 0 3px rgba(37,228,212,0.12); }
+.contact-form__hint { margin: 2px 0 0; font-size: 12.5px; color: var(--br-text-dim); text-align: center; }
+
 /* ---------------- CTA FINALE ---------------- */
 .cta { padding: 40px 32px 88px; }
 .cta__panel { position: relative; overflow: hidden; max-width: 1000px; margin: 0 auto; text-align: center;
@@ -322,4 +333,5 @@ svg.lucide { width: 18px; height: 18px; stroke-width: 2; }
   .podio__item--oro, .podio__item--argento, .podio__item--bronzo { order: 0; }
   .skin-card { width: 120px; }
   .skin-card img { height: 88px; }
+  .contact-form__row { grid-template-columns: 1fr; }
 }
