@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BullRun · Azioni (la Borsa)
+  ============================================================
+  La prima delle "stanze" dedicate a un singolo asset: qui puoi
+  comprare azioni di aziende (inventate, non vere) e vendere quelle
+  che possiedi. La liquidità è sempre ben visibile, così sai
+  sempre quanto puoi spendere.
+-->
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullRun · Azioni</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <style>
+    .az-wrap { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Barra in alto: si torna alla cameretta, o si va al profilo */
+    .topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 32px; background: rgba(10,14,20,0.78); backdrop-filter: blur(16px); border-bottom: 1px solid var(--br-line); }
+    .topbar__brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+    .topbar__brand img { height: 36px; filter: drop-shadow(0 0 10px rgba(37,228,212,0.35)); }
+    .topbar__name { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: var(--br-text); }
+    .topbar__right { display: flex; align-items: center; gap: 12px; }
+    .cash-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-pill);
+      background: var(--br-surface-2); border: 1px solid var(--br-line-neon); font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--br-text); }
+    .cash-pill svg.lucide { width: 16px; height: 16px; color: var(--br-cash); }
+    .icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md);
+      background: var(--br-surface-2); border: 1px solid var(--br-line); color: var(--br-text-muted); cursor: pointer; transition: .2s; text-decoration: none; }
+    .icon-btn:hover { color: var(--br-text); border-color: var(--br-line-strong); }
+    .icon-btn svg.lucide { width: 18px; height: 18px; }
+
+    .az-main { flex: 1; max-width: 1180px; width: 100%; margin: 0 auto; padding: 26px 32px 60px; display: flex; flex-direction: column; gap: 30px; }
+
+    /* Liquidità in grande evidenza */
+    .liquidita-hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px;
+      padding: 26px 28px; }
+    .liquidita-hero__ic { width: 54px; height: 54px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
+      background: var(--br-gradient); color: var(--br-ink); flex: none; }
+    .liquidita-hero__ic svg.lucide { width: 26px; height: 26px; }
+    .liquidita-hero__val { font-family: var(--font-mono); font-weight: 800; font-size: 40px; color: var(--br-text); text-shadow: var(--glow-text-green); line-height: 1; }
+    .liquidita-hero__lab { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--br-text-dim); margin-bottom: 6px; }
+    .liquidita-hero__nota { font-size: 13px; color: var(--br-text-muted); max-width: 260px; text-align: right; }
+
+    .sez__head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .sez__head h2 { margin: 0; font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--br-text); }
+    .sez__head span { font-size: 13px; color: var(--br-text-dim); }
+
+    /* Portafoglio azioni possedute */
+    .holding-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .holding { --acc: var(--br-stock); background: var(--br-surface); border: 1px solid var(--acc); border-radius: var(--radius-lg);
+      padding: 18px; box-shadow: 0 0 0 1px var(--acc), 0 0 22px -8px var(--acc); }
+    .holding__top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .holding__ic { width: 34px; height: 34px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+      background: var(--acc); color: var(--br-ink); flex: none; }
+    .holding__ic svg.lucide { width: 18px; height: 18px; }
+    .holding__nome { font-family: var(--font-display); font-weight: 600; font-size: 14.5px; color: var(--br-text); }
+    .holding__tick { font-family: var(--font-mono); font-size: 11px; color: var(--br-text-dim); }
+    .holding__val { font-family: var(--font-mono); font-weight: 700; font-size: 19px; color: var(--br-text); }
+    .holding__delta { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+    .holding__delta--up { color: var(--br-up); } .holding__delta--down { color: var(--br-down); }
+    .holding .btn { width: 100%; margin-top: 14px; }
+    .holding-empty { grid-column: 1/-1; text-align: center; padding: 30px 16px; color: var(--br-text-dim); font-size: 13.5px;
+      background: var(--br-surface); border: 1px dashed var(--br-line); border-radius: var(--radius-lg); }
+
+    /* Mercato: aziende disponibili */
+    .market-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .market { --acc: var(--br-stock); background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg);
+      padding: 16px; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+    .market:hover { transform: translateY(-3px); border-color: var(--br-line-strong); }
+    .market__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .market__ic { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.05); color: var(--acc); }
+    .market__ic svg.lucide { width: 17px; height: 17px; }
+    .market__delta { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+    .market__delta--up { color: var(--br-up); } .market__delta--down { color: var(--br-down); }
+    .market__nome { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--br-text); }
+    .market__tick { font-family: var(--font-mono); font-size: 10.5px; color: var(--br-text-dim); margin-bottom: 6px; }
+    .market__prezzo { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--br-text); margin-bottom: 10px; }
+    .market .btn { width: 100%; }
+
+    @media (max-width: 920px) { .holding-grid { grid-template-columns: 1fr 1fr; } .market-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) {
+      .holding-grid, .market-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 12px 16px; } .az-main { padding: 22px 16px 50px; }
+      .liquidita-hero { flex-direction: column; align-items: flex-start; }
+      .liquidita-hero__nota { text-align: left; }
+    }
+  </style>
+</head>
+<body class="br-grid-bg">
+  <div class="az-wrap">
+
+    <!-- BARRA IN ALTO -->
+    <header class="topbar">
+      <a class="topbar__brand" href="hub.html">
+        <img src="assets/logo.png" alt="">
+        <span class="topbar__name"><span class="br-gradient-text">Bull</span>Run</span>
+      </a>
+      <div class="topbar__right">
+        <span class="cash-pill"><i data-lucide="wallet"></i><span id="tb-cash">€ 0</span></span>
+        <a class="icon-btn" href="hub.html" title="Torna alla cameretta"><i data-lucide="door-open"></i></a>
+        <a class="icon-btn" href="profile.html" title="Il tuo profilo"><i data-lucide="user"></i></a>
+      </div>
+    </header>
+
+    <!-- TICKER: le aziende che scorrono, come in home -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track" id="ticker-track"></div>
+    </div>
+
+    <main class="az-main">
+
+      <!-- Liquidità sempre in evidenza -->
+      <div class="card liquidita-hero">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span class="liquidita-hero__ic"><i data-lucide="wallet"></i></span>
+          <div>
+            <div class="liquidita-hero__lab">Liquidità disponibile</div>
+            <div class="liquidita-hero__val" id="liquidita-val">€ 0</div>
+          </div>
+        </div>
+        <p class="liquidita-hero__nota">Quello che non hai investito. Ogni acquisto la riduce, ogni vendita la aumenta.</p>
+      </div>
+
+      <!-- Il tuo portafoglio azioni -->
+      <section>
+        <div class="sez__head">
+          <h2>Il tuo portafoglio azioni</h2>
+          <span>Vendi con un click</span>
+        </div>
+        <div class="holding-grid" id="holding-grid"></div>
+      </section>
+
+      <!-- Mercato azionario -->
+      <section>
+        <div class="sez__head">
+          <h2>Mercato azionario</h2>
+          <span>Aziende disponibili per investire</span>
+        </div>
+        <div class="market-grid" id="market-grid"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const formattaNumero = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const eur = n => '€ ' + formattaNumero(n);
+
+    // ====== Le aziende del mercato (nomi inventati, non aziende vere) ======
+    const AZIENDE = [
+      { id:'novatech',  nome:'NovaTech',    tick:'NVT', icona:'cpu',            prezzo:128.40, delta:2.3  },
+      { id:'ecomotori', nome:'Ecomotori',   tick:'ECM', icona:'zap',            prezzo:64.10,  delta:-1.8 },
+      { id:'cibofuturo',nome:'CiboFuturo',  tick:'CBF', icona:'leaf',           prezzo:22.75,  delta:0.6  },
+      { id:'spaziolink',nome:'SpazioLink',  tick:'SPZ', icona:'rocket',         prezzo:301.90, delta:4.1  },
+      { id:'biogenics', nome:'BioGenics',   tick:'BIO', icona:'flask-conical',  prezzo:87.30,  delta:-0.4 },
+      { id:'gameforge', nome:'GameForge',   tick:'GMF', icona:'gamepad-2',      prezzo:45.60,  delta:1.2  },
+      { id:'solarwave', nome:'SolarWave',   tick:'SLW', icona:'sun',            prezzo:19.85,  delta:3.5  },
+      { id:'streamonda',nome:'StreamOnda',  tick:'STO', icona:'tv',             prezzo:56.20,  delta:-0.9 },
+    ];
+    const IMPORTO_ACQUISTO = 2000; // ogni click su "Compra" investe questa cifra fissa
+
+    // ====== Lo stato (per ora locale a questa pagina: niente salvataggio condiviso ancora) ======
+    // ⚠️ VALORE DI TEST: liquidità a 100.000.000, coerente con dashboard.html,
+    // per provare acquisti/vendite senza limiti. Da riportare a un valore
+    // normale dopo i test.
+    let liquidita = 100000000;
+    // Due posizioni di esempio già in portafoglio, per poter provare
+    // subito il tasto "Vendi" senza dover prima comprare.
+    let portafoglio = {
+      novatech:  { valore:3200, delta:4.2 },
+      spaziolink:{ valore:1500, delta:-2.1 },
+    };
+
+    function aziendaById(id){ return AZIENDE.find(a => a.id === id); }
+
+    function render(){
+      $('tb-cash').textContent = eur(liquidita);
+      $('liquidita-val').textContent = eur(liquidita);
+
+      // Portafoglio
+      const posseduti = Object.keys(portafoglio);
+      if(posseduti.length === 0){
+        $('holding-grid').innerHTML = '<div class="holding-empty">Non possiedi ancora nessuna azione. Comprane una dal mercato qui sotto!</div>';
+      } else {
+        $('holding-grid').innerHTML = posseduti.map(id => {
+          const a = aziendaById(id); const h = portafoglio[id];
+          const giu = h.delta < 0;
+          return '<div class="holding" style="--acc:var(--br-stock)">'
+            + '<div class="holding__top"><span class="holding__ic"><i data-lucide="' + a.icona + '"></i></span>'
+            + '<div><div class="holding__nome">' + a.nome + '</div><div class="holding__tick">' + a.tick + '</div></div></div>'
+            + '<div class="holding__val">' + eur(h.valore) + '</div>'
+            + '<div class="holding__delta ' + (giu ? 'holding__delta--down' : 'holding__delta--up') + '">' + (giu ? '▾' : '▴') + ' ' + h.delta.toFixed(1) + '%</div>'
+            + '<button class="btn btn--secondary" data-vendi="' + id + '">Vendi</button>'
+            + '</div>';
+        }).join('');
+      }
+
+      // Mercato
+      $('market-grid').innerHTML = AZIENDE.map(a => {
+        const giu = a.delta < 0;
+        return '<div class="market" style="--acc:var(--br-stock)">'
+          + '<div class="market__top"><span class="market__ic"><i data-lucide="' + a.icona + '"></i></span>'
+          + '<span class="market__delta ' + (giu ? 'market__delta--down' : 'market__delta--up') + '">' + (giu ? '▾' : '▴') + ' ' + a.delta.toFixed(1) + '%</span></div>'
+          + '<div class="market__nome">' + a.nome + '</div>'
+          + '<div class="market__tick">' + a.tick + '</div>'
+          + '<div class="market__prezzo">€ ' + a.prezzo.toFixed(2).replace('.', ',') + '</div>'
+          + '<button class="btn btn--primary" data-compra="' + a.id + '">Compra · ' + eur(IMPORTO_ACQUISTO) + '</button>'
+          + '</div>';
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // Click su "Compra": un click, un importo fisso, sempre uguale e prevedibile.
+    $('market-grid').addEventListener('click', e => {
+      const btn = e.target.closest('[data-compra]'); if(!btn) return;
+      const id = btn.dataset.compra;
+      if(liquidita < IMPORTO_ACQUISTO){ return; } // non abbastanza liquidità
+      liquidita -= IMPORTO_ACQUISTO;
+      if(portafoglio[id]) portafoglio[id].valore += IMPORTO_ACQUISTO;
+      else portafoglio[id] = { valore: IMPORTO_ACQUISTO, delta: 0 };
+      render();
+    });
+
+    // Click su "Vendi": un click, vendi TUTTA la posizione, torna in liquidità.
+    $('holding-grid').addEventListener('click', e => {
+      const btn = e.target.closest('[data-vendi]'); if(!btn) return;
+      const id = btn.dataset.vendi;
+      liquidita += portafoglio[id].valore;
+      delete portafoglio[id];
+      render();
+    });
+
+    // Ticker in alto: le stesse aziende del mercato, in scorrimento continuo.
+    const trackTicker = $('ticker-track');
+    const voceTicker = a => '<span class="ticker__item"><span class="ticker__nome">' + a.tick + '</span>'
+      + '<span class="ticker__val">€ ' + a.prezzo.toFixed(2).replace('.', ',') + '</span>'
+      + '<span class="ticker__delta ticker__delta--' + (a.delta < 0 ? 'down' : 'up') + '">' + (a.delta < 0 ? '▾' : '▴') + ' ' + a.delta.toFixed(1) + '%</span></span>';
+    trackTicker.innerHTML = AZIENDE.map(voceTicker).join('') + AZIENDE.map(voceTicker).join('');
+
+    render();
+  </script>
+</body>
+</html>

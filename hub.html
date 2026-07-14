@@ -62,23 +62,29 @@
       color: var(--br-teal); font-family: var(--font-mono); font-size: 10px; font-weight: 700; display: grid; place-items: center; }
 
     /* ---- Oggetti cliccabili (hotspot) ---- */
-    .hot { position: absolute; z-index: 15; display: block; }
-    .hot .ring { position: absolute; inset: -6px; border-radius: 18px; border: 1.5px solid transparent;
-      transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out); }
-    .hot:hover .ring { border-color: var(--acc);
-      background: radial-gradient(120% 120% at 50% 50%, color-mix(in oklab, var(--acc) 14%, transparent), transparent 70%);
-      box-shadow: 0 0 0 1px var(--acc), 0 0 30px -2px var(--acc), inset 0 0 40px -14px var(--acc); }
+    .hot { position: absolute; z-index: 15; display: block; cursor: pointer; }
+
+    /* Bagliore ORGANICO (un alone morbido, non un riquadro): si accende
+       solo quando l'oggetto viene SELEZIONATO con un click, non al hover. */
+    .hot .glow { position: absolute; inset: -22%; border-radius: 50%; pointer-events: none;
+      background: radial-gradient(circle, color-mix(in oklab, var(--acc) 55%, transparent) 0%, color-mix(in oklab, var(--acc) 22%, transparent) 45%, transparent 72%);
+      opacity: 0; transform: scale(.82);
+      transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out); }
+    .hot.selected .glow { opacity: 1; transform: scale(1); }
+    .hot.selected { transform: scale(1.045); z-index: 17; transition: transform var(--dur-slow) var(--ease-bounce); }
+
     .hot .ping { position: absolute; top: 8px; right: 8px; width: 9px; height: 9px; border-radius: 50%;
       background: var(--acc); box-shadow: 0 0 12px var(--acc); animation: blink 1.8s var(--ease-in-out) infinite; }
-    .hot:hover .ping { opacity: 0; }
+    .hot.selected .ping { opacity: 0; }
 
-    /* Etichetta in vetro che compare al passaggio del mouse */
+    /* Etichetta in vetro: sempre leggibile, si illumina del tutto solo alla selezione */
     .pill { position: absolute; left: 50%; top: calc(100% - 2px); transform: translate(-50%, 6px);
       display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; white-space: nowrap; border-radius: 14px;
       background: var(--glass-bg); backdrop-filter: blur(var(--blur-panel));
-      border: 1px solid color-mix(in oklab, var(--acc) 45%, var(--br-line)); box-shadow: var(--shadow-md); opacity: 0.92;
+      border: 1px solid color-mix(in oklab, var(--acc) 45%, var(--br-line)); box-shadow: var(--shadow-md); opacity: 0.88;
       transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
-    .hot:hover .pill { transform: translate(-50%, 0); opacity: 1; box-shadow: var(--shadow-lg), 0 0 24px -6px var(--acc); }
+    .hot:hover .pill { opacity: 0.98; }
+    .hot.selected .pill { transform: translate(-50%, 0); opacity: 1; box-shadow: var(--shadow-lg), 0 0 26px -6px var(--acc); }
     .pill-ic { width: 30px; height: 30px; flex: none; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
       background: color-mix(in oklab, var(--acc) 18%, transparent); color: var(--acc); }
     .pill-ic svg.lucide { width: 17px; height: 17px; }
@@ -125,33 +131,33 @@
       </header>
 
       <!-- Oggetti-portale (coordinate in % sulla scena) -->
-      <a class="hot" style="left:2.5%;top:9%;width:35%;height:41%;--acc:var(--br-stock)" href="dashboard.html#stock">
-        <span class="ring"></span><span class="ping"></span>
+      <a class="hot" style="left:2.5%;top:9%;width:35%;height:41%;--acc:var(--br-stock)" href="azioni.html">
+        <span class="glow"></span><span class="ping"></span>
         <span class="pill"><span class="pill-ic"><i data-lucide="candlestick-chart"></i></span>
           <span class="pill-txt"><b>Azioni</b><i>Borsa · Trading</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
       <a class="hot" style="left:47%;top:14%;width:16%;height:27%;--acc:var(--br-etf)" href="dashboard.html#etf">
-        <span class="ring"></span><span class="ping"></span>
+        <span class="glow"></span><span class="ping"></span>
         <span class="pill"><span class="pill-ic"><i data-lucide="bar-chart-3"></i></span>
           <span class="pill-txt"><b>ETF</b><i>Indici · Crescita</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
       <a class="hot" style="left:69%;top:5%;width:16%;height:31%;--acc:var(--br-crypto)" href="dashboard.html#crypto">
-        <span class="ring"></span><span class="ping"></span>
+        <span class="glow"></span><span class="ping"></span>
         <span class="pill"><span class="pill-ic"><i data-lucide="bitcoin"></i></span>
           <span class="pill-txt"><b>Crypto</b><i>Valute digitali</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
       <a class="hot" style="left:10%;top:43%;width:23%;height:38%;--acc:var(--br-bond)" href="dashboard.html#bond">
-        <span class="ring"></span><span class="ping"></span>
+        <span class="glow"></span><span class="ping"></span>
         <span class="pill"><span class="pill-ic"><i data-lucide="landmark"></i></span>
           <span class="pill-txt"><b>BTP</b><i>Obbligazioni</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
       <a class="hot" style="left:60%;top:56%;width:27%;height:26%;--acc:var(--br-realestate)" href="dashboard.html#realestate">
-        <span class="ring"></span><span class="ping"></span>
+        <span class="glow"></span><span class="ping"></span>
         <span class="pill"><span class="pill-ic"><i data-lucide="home"></i></span>
           <span class="pill-txt"><b>Immobili</b><i>REIT · Case</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
       <a class="hot" style="left:41.5%;top:52%;width:22%;height:29%;--acc:var(--br-teal)" href="dashboard.html">
-        <span class="ring"></span><span class="ping"></span>
+        <span class="glow"></span><span class="ping"></span>
         <span class="pill pill-primary"><span class="pill-ic"><i data-lucide="wallet"></i></span>
           <span class="pill-txt"><b>Il tuo portafoglio</b><i>Patrimonio · €124.800</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
@@ -165,6 +171,23 @@
   </div>
 
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script>lucide.createIcons();</script>
+  <script>
+    lucide.createIcons();
+
+    // Click su un oggetto: si illumina (selezionato), poi dopo un attimo
+    // entra nella sezione. Così si vede il bagliore prima di essere portati
+    // via, invece di sparire subito con la navigazione.
+    document.querySelectorAll('.hot').forEach(function (hot) {
+      hot.addEventListener('click', function (e) {
+        // Click con tasti modificatori (nuova scheda, ecc.): lascia fare al browser.
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        document.querySelectorAll('.hot').forEach(function (h) { h.classList.remove('selected'); });
+        hot.classList.add('selected');
+        var destinazione = hot.getAttribute('href');
+        setTimeout(function () { window.location.href = destinazione; }, 420);
+      });
+    });
+  </script>
 </body>
 </html>
