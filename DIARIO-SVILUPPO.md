@@ -25,8 +25,9 @@ portafoglio virtuale da 100.000€, senza rischiare un euro vero.
 7. [Stagione 1: countdown, classifica, premi](#7-stagione-1-countdown-classifica-premi)
 8. [Le skin da collezionare](#8-le-skin-da-collezionare)
 9. [Rifiniture: economia reale, ticker, spiegazioni](#9-rifiniture-economia-reale-ticker-spiegazioni)
-10. [Stack tecnico in breve](#10-stack-tecnico-in-breve)
-11. [Cosa manca ancora (roadmap)](#11-cosa-manca-ancora-roadmap)
+10. [Le scatole da aprire: dal disegno statico al video 3D](#10-le-scatole-da-aprire-dal-disegno-statico-al-video-3d)
+11. [Stack tecnico in breve](#11-stack-tecnico-in-breve)
+12. [Cosa manca ancora (roadmap)](#12-cosa-manca-ancora-roadmap)
 
 ---
 
@@ -244,7 +245,53 @@ reale in tempo reale.)*
 
 ---
 
-## 10. Stack tecnico in breve
+## 10. Le scatole da aprire: dal disegno statico al video 3D
+
+**Obiettivo:** dare alle skin un vero modo di essere vinte, invece di sbloccarle a
+caso. L'idea: **scatole misteriose** da aprire, con un'animazione che le renda
+speciali.
+
+**Cosa abbiamo costruito:**
+- All'iscrizione si parte con **una sola skin** (quella del logo). Tutte le
+  altre si vincono aprendo scatole.
+- Nel profilo, cliccando una scatola si apre un pannello con l'animazione di
+  apertura, che rivela una skin bloccata a caso e la sblocca per sempre.
+- La foto profilo è semplicemente "la skin che hai scelto di indossare in
+  quel momento".
+
+**🎨 Prima idea: Qwen. Poi il cambio di rotta: Blender.**
+Il primo tentativo è stato generare con **Qwen** (la stessa AI usata per logo e
+skin) un'immagine 2D della scatola, da animare con un tremolio e un lampo fatti
+in CSS. Funzionava, ma restava piatta — non rendeva l'idea di una vera scatola
+che si apre in tre dimensioni.
+
+La svolta: collegare Claude direttamente a **Blender** (il programma di
+modellazione 3D, gratuito e open source) tramite un **MCP** — un "ponte" che
+permette a un'intelligenza artificiale di guidare un programma esterno con dei
+comandi, invece di limitarsi a scrivere testo o codice. Con questo collegamento,
+Claude ha potuto **costruire un modello 3D** vero e proprio (base + coperchio,
+bordi al neon), **animarlo** (ferma → trema sempre più forte → il coperchio
+vola via) e **renderizzarlo** in un video.
+
+**🧩 Difficoltà — un Blender pieno di sorprese.**
+Il programma installato aveva l'interfaccia in italiano, e questo ha creato più
+di un imprevisto: anche i nomi "di fabbrica" dei componenti interni (i "nodi")
+erano tradotti, quindi cercarli con il nome inglese standard falliva sempre
+(es. "Background" non esisteva, si chiamava "Sfondo"). Anche l'effetto di
+bagliore ("bloom") — quello che fa sembrare i bordi davvero al neon — non era
+disponibile nel modo consueto in questa versione. Soluzione: il bagliore è
+stato aggiunto **dopo**, fotogramma per fotogramma, con lo stesso tipo di
+programma Python usato per pulire lo sfondo delle skin (capitolo 8) — si
+individuano i pixel più luminosi, si sfocano, e si "sommano" sopra come un vero
+alone di luce.
+
+**Il risultato:** un video di 3 secondi (90 fotogrammi), appena 160 KB —
+leggerissimo per il sito, ma con un effetto molto più curato di una semplice
+animazione CSS.
+
+---
+
+## 11. Stack tecnico in breve
 
 | Livello | Tecnologia | Perché |
 |---|---|---|
@@ -262,12 +309,14 @@ reale in tempo reale.)*
 - `login.html` — Accedi / Iscriviti
 - `hub.html` — "La tua cameretta" (il menu di gioco)
 - `dashboard.html` — La partita vera (portafoglio, asset, eventi, turni)
-- `profile.html` — Profilo giocatore e collezione skin
+- `azioni.html` — Prima "stanza" dedicata a un singolo asset: si comprano e
+  vendono azioni di aziende (inventate) con la propria liquidità
+- `profile.html` — Profilo giocatore, collezione skin e scatole da aprire
 - `classifica.html` — Classifica di Stagione 1
 
 ---
 
-## 11. Cosa manca ancora (roadmap)
+## 12. Cosa manca ancora (roadmap)
 
 Essere onesti su cosa è "vero" e cosa è ancora una base da completare è
 importante — anche questo si può raccontare in una slide ("il progetto continua"):
@@ -281,11 +330,12 @@ importante — anche questo si può raccontare in una slide ("il progetto contin
 - ⬜ **Sistema punti XP più ricco** — oggi si guadagna XP solo avanzando di
   settimana; idee allo studio: bonus per l'accesso giornaliero, bonus quando si
   ribilancia il portafoglio.
-- ⬜ **Sblocco delle skin** — le immagini ci sono, manca ancora la regola su
-  come si vincono giocando.
-- ⬜ **Dashboard diverse per ogni asset** — l'idea è che cliccando "Azioni"
-  nella cameretta si apra una schermata diversa da quella di "ETF", ognuna con
-  il suo stile. Per ora portano tutte alla stessa dashboard.
+- ✅ **Sblocco delle skin** — fatto: si vincono aprendo scatole (capitolo 10).
+  Manca ancora **come si guadagnano le scatole** giocando (per ora ce n'è
+  sempre una pronta, di proposito, per poter continuare a testare).
+- 🔶 **Dashboard diverse per ogni asset** — iniziata: "Azioni" ha già la sua
+  schermata dedicata (mercato + portafoglio + vendita). Mancano ancora ETF,
+  Crypto, BTP e Immobili, che per ora portano alla dashboard generale.
 
 ---
 
