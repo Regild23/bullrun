@@ -229,9 +229,15 @@
     // Stato salvato nel browser
     let username = localStorage.getItem('br_username') || 'Giocatore';
     let equipped = localStorage.getItem('br_skin') || 'classica';
-    // ⚠️ VALORE DI TEST: partiamo con 1 scatola pronta per provare subito
-    // l'apertura. In futuro le scatole si vinceranno giocando.
+    // ⚠️ VALORE DI TEST: finché non esiste un vero modo di guadagnare le
+    // scatole giocando, ne teniamo SEMPRE almeno 1 pronta, così si può
+    // continuare a provare l'apertura. Da togliere quando ci sarà un vero
+    // sistema (es. scatole vinte avanzando di settimana, per livello, ecc).
     let scatole = parseInt(localStorage.getItem('br_scatole') ?? '1', 10);
+    if (scatole < 1) {
+      scatole = 1;
+      localStorage.setItem('br_scatole', scatole);
+    }
 
     function skinById(id) { return SKINS.find(s => s.id === id) || SKINS[0]; }
 
