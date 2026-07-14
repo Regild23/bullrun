@@ -110,18 +110,11 @@
     .box-modal h3 { margin: 4px 0 6px; font-family: var(--font-display); font-size: 20px; color: var(--br-text); }
     .box-modal p.hint { margin: 0 0 22px; font-size: 13.5px; color: var(--br-text-muted); min-height: 18px; }
 
-    .box-stage { position: relative; width: 140px; height: 140px; margin: 0 auto 22px; display: flex;
+    /* Il "palco" ora mostra il video renderizzato in Blender (scatola nera
+       con bordi neon che trema e si apre), invece di un'animazione CSS. */
+    .box-stage { position: relative; width: 180px; height: 180px; margin: 0 auto 22px; display: flex;
       align-items: center; justify-content: center; border-radius: var(--radius-lg); background: var(--br-surface-2); overflow: hidden; }
-    .box-stage__ic { position: relative; z-index: 1; color: var(--br-teal); }
-    .box-stage__ic svg.lucide { width: 62px; height: 62px; }
-    .box-stage__flash { position: absolute; inset: -30%; border-radius: 50%; opacity: 0; transform: scale(.2);
-      background: radial-gradient(circle, rgba(182,242,60,.9), rgba(37,228,212,.4) 45%, transparent 72%); }
-    .box-stage.scuoti .box-stage__ic { animation: scuoti-scatola .45s ease-in-out infinite; }
-    .box-stage.burst .box-stage__flash { animation: flash-scatola .6s ease-out forwards; }
-    .box-stage.burst .box-stage__ic { animation: scompare-scatola .3s ease-in forwards; }
-    @keyframes scuoti-scatola { 0%,100% { transform: rotate(0) translateX(0); } 25% { transform: rotate(-9deg) translateX(-3px); } 75% { transform: rotate(9deg) translateX(3px); } }
-    @keyframes flash-scatola { 0% { opacity: 0; transform: scale(.2); } 45% { opacity: 1; transform: scale(1.35); } 100% { opacity: 0; transform: scale(1.9); } }
-    @keyframes scompare-scatola { to { opacity: 0; transform: scale(0); } }
+    .box-stage video { width: 100%; height: 100%; object-fit: contain; }
 
     .box-reward { display: none; flex-direction: column; align-items: center; gap: 8px; margin: -6px 0 22px; animation: reveal-premio .45s var(--ease-bounce); }
     .box-reward.on { display: flex; }
@@ -189,8 +182,7 @@
       <h3 id="box-titolo">Hai una scatola pronta!</h3>
       <p class="hint" id="box-hint">Toccala per scoprire cosa contiene.</p>
       <div class="box-stage" id="box-stage">
-        <span class="box-stage__flash"></span>
-        <span class="box-stage__ic"><i data-lucide="package"></i></span>
+        <video id="box-video" src="assets/scatola/apertura.mp4" muted playsinline preload="auto"></video>
       </div>
       <div class="box-reward" id="box-reward">
         <img id="reward-img" src="" alt="">
@@ -312,9 +304,9 @@
       catch (e) { /* nessun account collegato, va bene così */ }
     })();
 
-    // ====== Apertura scatola: pannello + animazione + premio ======
+    // ====== Apertura scatola: pannello + video (fatto in Blender) + premio ======
     const modal = $('box-modal');
-    const stage = $('box-stage');
+    const video = $('box-video');
 
     $('box-grid').addEventListener('click', e => {
       if (e.target.closest('[data-apri]')) apriPannello();
@@ -324,55 +316,56 @@
     $('box-continua').addEventListener('click', () => { chiudiPannello(); render(); });
 
     function apriPannello() {
-      stage.className = 'box-stage';
+      video.pause();
+      video.currentTime = 0; // torna al primo fotogramma: la scatola chiusa
       $('box-reward').classList.remove('on');
       $('box-titolo').textContent = 'Hai una scatola pronta!';
       $('box-hint').textContent = 'Toccala per scoprire cosa contiene.';
       $('box-apri').style.display = '';
       $('box-apri').textContent = 'Apri ora';
+      $('box-apri').onclick = apriScatolaOra;
       $('box-continua').style.display = 'none';
       modal.classList.add('on');
     }
 
-    function chiudiPannello() { modal.classList.remove('on'); }
+    function chiudiPannello() { modal.classList.remove('on'); video.pause(); }
 
     function apriScatolaOra() {
       $('box-apri').style.display = 'none';
       $('box-hint').textContent = '';
-      stage.classList.add('scuoti');
+      video.currentTime = 0;
+      video.play();
 
-      setTimeout(() => {
-        stage.classList.remove('scuoti');
-        stage.classList.add('burst');
+      // Aspettiamo che il video finisca (si apre da solo, la durata è quella
+      // vera del filmato: niente numeri "a caso" da tenere allineati a mano).
+      video.addEventListener('ended', mostraPremio, { once: true });
+    }
 
-        setTimeout(() => {
-          const bloccate = SKINS.filter(s => s.locked);
+    function mostraPremio() {
+      const bloccate = SKINS.filter(s => s.locked);
 
-          if (bloccate.length === 0) {
-            // Le ha già sbloccate tutte: la scatola resta per un'altra volta.
-            $('box-titolo').textContent = 'Le hai già tutte!';
-            $('box-hint').textContent = 'Hai sbloccato tutte le skin. Questa scatola resta per la prossima volta.';
-            stage.className = 'box-stage';
-            $('box-apri').style.display = '';
-            $('box-apri').textContent = 'Chiudi';
-            $('box-apri').onclick = chiudiPannello;
-            return;
-          }
+      if (bloccate.length === 0) {
+        // Le ha già sbloccate tutte: la scatola resta per un'altra volta.
+        $('box-titolo').textContent = 'Le hai già tutte!';
+        $('box-hint').textContent = 'Hai sbloccato tutte le skin. Questa scatola resta per la prossima volta.';
+        $('box-apri').style.display = '';
+        $('box-apri').textContent = 'Chiudi';
+        $('box-apri').onclick = chiudiPannello;
+        return;
+      }
 
-          const vinta = bloccate[Math.floor(Math.random() * bloccate.length)];
-          vinta.locked = false;
-          scatole = Math.max(0, scatole - 1);
-          localStorage.setItem('br_scatole', scatole);
-          salvaSbloccate();
+      const vinta = bloccate[Math.floor(Math.random() * bloccate.length)];
+      vinta.locked = false;
+      scatole = Math.max(0, scatole - 1);
+      localStorage.setItem('br_scatole', scatole);
+      salvaSbloccate();
 
-          $('box-titolo').textContent = 'Scatola aperta!';
-          $('reward-img').src = 'assets/skin/' + vinta.file;
-          $('reward-nome').textContent = vinta.name;
-          $('box-reward').classList.add('on');
-          $('box-continua').style.display = '';
-          lucide.createIcons();
-        }, 650);
-      }, 900);
+      $('box-titolo').textContent = 'Scatola aperta!';
+      $('reward-img').src = 'assets/skin/' + vinta.file;
+      $('reward-nome').textContent = vinta.name;
+      $('box-reward').classList.add('on');
+      $('box-continua').style.display = '';
+      lucide.createIcons();
     }
 
     render();
