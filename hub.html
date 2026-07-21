@@ -122,10 +122,9 @@
           Tocca un oggetto per entrare
         </div>
         <div class="hud-right">
-          <!-- ⚠️ VALORE DI TEST, vedi START.cash in dashboard.html -->
-          <span class="cash"><i data-lucide="wallet"></i>€ 100.000.000 liquidi</span>
+          <span class="cash"><i data-lucide="wallet"></i><span id="hud-cash">€ 0 liquidi</span></span>
           <a href="profile.html" class="avatar-link" title="Il tuo profilo">
-            <div class="avatar"><span class="avatar__face">LM</span><span class="avatar__lvl">7</span></div>
+            <div class="avatar"><span class="avatar__face" id="hub-iniziali">GC</span><span class="avatar__lvl" id="hub-livello">1</span></div>
           </a>
         </div>
       </header>
@@ -136,7 +135,7 @@
         <span class="pill"><span class="pill-ic"><i data-lucide="candlestick-chart"></i></span>
           <span class="pill-txt"><b>Azioni</b><i>Borsa · Trading</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
-      <a class="hot" style="left:47%;top:14%;width:16%;height:27%;--acc:var(--br-etf)" href="dashboard.html#etf">
+      <a class="hot" style="left:47%;top:14%;width:16%;height:27%;--acc:var(--br-etf)" href="etf.html">
         <span class="glow"></span><span class="ping"></span>
         <span class="pill"><span class="pill-ic"><i data-lucide="bar-chart-3"></i></span>
           <span class="pill-txt"><b>ETF</b><i>Indici · Crescita</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
@@ -159,7 +158,7 @@
       <a class="hot" style="left:41.5%;top:52%;width:22%;height:29%;--acc:var(--br-teal)" href="dashboard.html">
         <span class="glow"></span><span class="ping"></span>
         <span class="pill pill-primary"><span class="pill-ic"><i data-lucide="wallet"></i></span>
-          <span class="pill-txt"><b>Il tuo portafoglio</b><i>Patrimonio · €124.800</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
+          <span class="pill-txt"><b>Il tuo portafoglio</b><i id="hub-patrimonio">Patrimonio · €0</i></span><span class="pill-go"><i data-lucide="arrow-up-right"></i></span></span>
       </a>
 
       <!-- Didascalia -->
@@ -170,9 +169,26 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/stato-gioco.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     lucide.createIcons();
+
+    const formattaNumero = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    // Pagina di sola lettura: qui non si cambia mai lo stato, quindi non
+    // c'è bisogno di aspettare che sia caricato prima di collegare i click
+    // sugli oggetti qui sotto (per quelli basta solo il loro "href").
+    (async () => {
+      const stato = await caricaStato();
+      const patrimonio = patrimonioTotale(stato, stato.prezziMercato);
+      document.getElementById('hud-cash').textContent = '€ ' + formattaNumero(stato.cash) + ' liquidi';
+      document.getElementById('hub-patrimonio').textContent = 'Patrimonio · €' + formattaNumero(patrimonio);
+      document.getElementById('hub-iniziali').textContent = iniziali(stato.username);
+      document.getElementById('hub-livello').textContent = livelloDa(stato.xp).livello;
+    })();
 
     // Click su un oggetto: si illumina (selezionato), poi dopo un attimo
     // entra nella sezione. Così si vede il bagliore prima di essere portati

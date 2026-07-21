@@ -3,11 +3,13 @@
   ============================================================
   BullRun · Dashboard (il gioco vero e proprio)
   ============================================================
-  La "postazione di controllo": vedi il patrimonio, scegli gli asset,
-  premi "Avanza settimana" e il mercato reagisce all'evento.
+  La "postazione di controllo": vedi il patrimonio e scegli gli asset.
+  Il tempo di gioco è tempo REALE: non c'è un bottone da premere, il
+  mercato si aggiorna da solo quando inizia una nuova settimana vera
+  (la logica è in js/stato-gioco.js, chiamata da caricaStato()).
   Ogni settimana ricevi anche un bonus fisso in liquidità: così, anche
   se hai perso tutto, puoi sempre continuare a giocare.
-  La logica di gioco (lo "stato") è nello <script> in fondo.
+  Questa pagina è di sola lettura: mostra lo stato, non lo cambia.
 -->
 <html lang="it">
 <head>
@@ -103,7 +105,7 @@
         <span class="cash-pill"><i data-lucide="wallet"></i><span id="tb-cash">€ 1.200</span> liquidi</span>
         <a class="icon-btn" href="classifica.html" title="Classifica"><i data-lucide="trophy"></i></a>
         <button class="icon-btn" title="Notifiche"><i data-lucide="bell"></i></button>
-        <div class="av av--40"><div class="ring"><div class="face">LM</div></div><span class="lvl">7</span></div>
+        <div class="av av--40"><div class="ring"><div class="face" id="tb-iniziali">GC</div></div><span class="lvl" id="tb-livello">1</span></div>
       </div>
     </header>
 
@@ -141,7 +143,7 @@
             </svg>
           </div>
           <div class="minis">
-            <div><div class="mini__label">Capitale iniziale</div><div class="mini__value">€ 100.000</div></div>
+            <div><div class="mini__label">Capitale iniziale</div><div class="mini__value" id="ms-capitale">€ 0</div></div>
             <div><div class="mini__label">Guadagno totale</div><div class="mini__value" id="ms-gain">€ 1.480</div></div>
             <div><div class="mini__label">Settimana di gioco</div><div class="mini__value" id="ms-settimana">#7</div></div>
           </div>
@@ -157,12 +159,12 @@
       <aside class="dash-side">
         <div class="card" style="padding:20px;">
           <div class="player">
-            <div class="av av--52"><div class="ring"><div class="face">LM</div></div><span class="lvl">7</span></div>
-            <div><div class="player__name">Luca M.</div><div class="player__role">Investitore in erba</div></div>
+            <div class="av av--52"><div class="ring"><div class="face" id="sb-iniziali">GC</div></div><span class="lvl" id="sb-livello">1</span></div>
+            <div><div class="player__name" id="player-nome">Giocatore</div><div class="player__role">Investitore in erba</div></div>
           </div>
           <div style="margin-top:16px;">
-            <div class="xphead"><span class="l">Livello 7</span><span class="v" id="xp-text">740 / 1000 XP</span></div>
-            <div class="xpbar"><i id="xp-fill" style="width:74%"></i></div>
+            <div class="xphead"><span class="l" id="sb-livello-testo">Livello 1</span><span class="v" id="xp-text">0 / 1000 XP</span></div>
+            <div class="xpbar"><i id="xp-fill" style="width:0%"></i></div>
           </div>
         </div>
 
@@ -176,17 +178,19 @@
         </div>
 
         <div class="card" style="padding:20px;">
-          <div class="turno-head"><span class="br-eyebrow">Turno</span><span class="v" id="turno-settimane">Settimana 7 → 8</span></div>
-          <button class="btn btn--primary btn--lg" id="avanza" style="width:100%;">Avanza settimana <i data-lucide="calendar-arrow-down"></i></button>
-          <p class="turno-note">Ricevi <b>+€ 2.000</b> di bonus e guadagni <b>+35 XP</b>.</p>
+          <div class="turno-head"><span class="br-eyebrow">Turno</span><span class="v" id="turno-settimane">Settimana 7</span></div>
+          <p class="turno-note" id="turno-prossimo">Prossimo aggiornamento tra <b>3 giorni</b>: <b>+€ 2.000</b> di bonus e <b>+35 XP</b>.</p>
         </div>
       </aside>
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/stato-gioco.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
-    // ====== I DATI DEL GIOCO ======
+    // ====== I DATI DEL GIOCO (regole fisse, non cambiano mai) ======
     const ASSET_DEFS = [
       { id:'cash', name:'Liquidità', accent:'var(--br-cash)', icon:'wallet' },
       { id:'bond', name:'BTP', accent:'var(--br-bond)', icon:'landmark' },
@@ -195,46 +199,19 @@
       { id:'crypto', name:'Crypto', accent:'var(--br-crypto)', icon:'bitcoin' },
       { id:'realestate', name:'Immobili', accent:'var(--br-realestate)', icon:'building-2' },
     ];
-    // Quanti soldi ci sono in ogni asset all'inizio
-    // ⚠️ VALORE DI TEST: liquidità a 100.000.000 per provare l'apertura delle
-    // scatole senza limiti. Riportare a 12000 quando i test sono finiti.
-    const START = { cash:100000000, bond:18500, etf:34000, stock:19800, crypto:21500, realestate:19000 };
-    // Ogni settimana arriva questo bonus in liquidità, a tutti, senza eccezioni:
-    // così anche chi ha perso tutto può sempre continuare a giocare.
-    const BONUS_SETTIMANALE = 2000;
-    // La liquidità NON reagisce agli eventi di mercato (sta ferma in un conto),
-    // ma l'inflazione la erode piano piano: circa il 3% all'anno, in modo
-    // costante. "Soldi fermi sono soldi morti" - è l'unico asset che perde
-    // valore garantito, invece di andare a caso come gli altri.
-    const INFLAZIONE_ANNUA = 0.03;
-    const EROSIONE_SETTIMANALE = Math.pow(1 - INFLAZIONE_ANNUA, 1 / 52);
-    // Gli eventi: ognuno cambia i prezzi degli asset (in frazione: 0.03 = +3%).
-    // La liquidità non è tra le chiavi qui sotto apposta: vedi EROSIONE_SETTIMANALE.
-    const EVENTS = [
-      { title:'La BCE alza i tassi di interesse', icon:'newspaper',
-        body:'Prendere prestiti costa di più: le aziende rallentano, ma le obbligazioni rendono di più.',
-        fx:{ bond:0.03, stock:-0.05, crypto:-0.07, etf:-0.02, realestate:-0.01 } },
-      { title:"Boom dell'intelligenza artificiale", icon:'cpu',
-        body:'Le aziende tech volano. Azioni ed ETF ne traggono vantaggio, e anche le crypto salgono.',
-        fx:{ stock:0.08, etf:0.05, crypto:0.06, bond:-0.01, realestate:0.01 } },
-      { title:"L'inflazione torna a scendere", icon:'trending-down',
-        body:'I prezzi crescono più lentamente: buone notizie per azioni e immobili.',
-        fx:{ stock:0.04, realestate:0.03, etf:0.03, bond:0.01, crypto:0.02 } },
-      { title:'Crollo improvviso di una grande crypto', icon:'zap',
-        body:'Il panico colpisce il mercato cripto. Chi era diversificato sente meno il colpo.',
-        fx:{ crypto:-0.18, stock:-0.02, etf:-0.01, bond:0.01, realestate:0 } },
-      { title:'Nuovi incentivi per la casa', icon:'building-2',
-        body:'Il governo sostiene il mercato immobiliare. Gli immobili si rivalutano.',
-        fx:{ realestate:0.06, bond:0.01, stock:0.01, etf:0.01, crypto:-0.01 } },
-    ];
+    // Le regole del gioco (bonus, inflazione, eventi) e chi le applica sono
+    // in js/stato-gioco.js: caricaStato() aggiorna già lo stato da sola se
+    // è iniziata una nuova settimana vera, prima ancora che questa pagina
+    // inizi a disegnare qualcosa. Qui restano solo ASSET_DEFS (nomi/icone,
+    // decorazione) ed EVENTS/EROSIONE_SETTIMANALE (arrivano come "variabili
+    // globali" dallo script stato-gioco.js caricato sopra: li usiamo, non
+    // li ridefiniamo).
 
     // ====== LO STATO (cambia mentre giochi) ======
-    let settimana = 7;
-    let holdings = { ...START };
-    let prev = { ...START };          // valori della settimana scorsa (per calcolare i guadagni)
-    let eventIdx = 0;
-    let xp = 740;
-    let history = [100000, 104200, 101800, 108900, 112400, 110200, 114800];
+    // Partono tutti "vuoti": li riempie avvia() più sotto, dopo aver
+    // caricato i progressi salvati (js/stato-gioco.js).
+    let statoCompleto;          // tutto quello che arriva dal salvataggio, anche i campi che questa pagina non mostra (skin, scatole...) - serve a non perderli quando salviamo di nuovo
+    let settimana, xp, eventIdx, holdings, prev, history, azioni;
 
     // Se arrivi da un oggetto dell'Hub (es. #crypto), partiamo con quell'asset selezionato
     const validIds = ASSET_DEFS.map(a => a.id);
@@ -287,7 +264,12 @@
       pd.textContent = (tDelta<0?'▾ ':'▴ ') + (tDelta>=0?'+':'') + tDelta.toFixed(1) + '%';
       pd.className = 'stat__delta' + (tDelta<0 ? ' stat__delta--down' : '');
 
-      const gain = t - 100000;
+      // Il guadagno si misura contro il vero capitale di partenza, scritto
+      // una volta alla creazione dell'account: history[0] NON andrebbe bene,
+      // perché il grafico tiene solo le ultime settimane, non tutta la storia.
+      const capitaleIniziale = statoCompleto.capitaleIniziale;
+      const gain = t - capitaleIniziale;
+      document.getElementById('ms-capitale').textContent = eur(capitaleIniziale);
       const mg = document.getElementById('ms-gain');
       mg.textContent = eur(gain); mg.style.color = gain>=0 ? 'var(--br-up)' : 'var(--br-down)';
       document.getElementById('ms-settimana').textContent = '#' + settimana;
@@ -315,49 +297,72 @@
         '<span class="event__chip event__chip--' + im.dir + '"><span class="lab">' + im.label + '</span>'
         + '<span class="val">' + (im.dir==='down'?'▾':'▴') + ' ' + im.delta + '</span></span>').join('');
 
-      document.getElementById('xp-text').textContent = xp + ' / 1000 XP';
-      document.getElementById('xp-fill').style.width = (xp/10) + '%';
-      document.getElementById('turno-settimane').textContent = 'Settimana ' + settimana + ' → ' + (settimana+1);
+      // Livello e XP: il livello è SEMPRE ricavato dall'XP, mai un numero fisso.
+      const { livello, progresso } = livelloDa(xp);
+      document.getElementById('xp-text').textContent = progresso + ' / 1000 XP';
+      document.getElementById('xp-fill').style.width = (progresso/10) + '%';
+      document.getElementById('tb-livello').textContent = livello;
+      document.getElementById('sb-livello').textContent = livello;
+      document.getElementById('sb-livello-testo').textContent = 'Livello ' + livello;
+      document.getElementById('turno-settimane').textContent = 'Settimana ' + settimana;
+
+      // Quanto manca al prossimo aggiornamento automatico (giorni interi:
+      // se manca "0 giorni" ma è ancora nel futuro, meglio dire "1" che
+      // "0", altrimenti sembra che dovrebbe già essere successo).
+      if (statoCompleto.creatoIl) {
+        const prossimo = prossimoAggiornamentoIl(statoCompleto.creatoIl, settimana);
+        const giorni = Math.max(1, Math.ceil((prossimo - Date.now()) / (24*60*60*1000)));
+        document.getElementById('turno-prossimo').innerHTML =
+          'Prossimo aggiornamento tra <b>' + giorni + (giorni===1 ? ' giorno' : ' giorni') + '</b>: '
+          + '<b>+€ 2.000</b> di bonus e <b>+35 XP</b>.';
+      } else {
+        // Chi gioca da ospite non ha una vera data di iscrizione da cui contare.
+        document.getElementById('turno-prossimo').textContent = 'Accedi per far scorrere il tempo di gioco.';
+      }
+
+      // Nome e iniziali del giocatore
+      const nome = statoCompleto.username || 'Giocatore';
+      document.getElementById('player-nome').textContent = nome;
+      document.getElementById('tb-iniziali').textContent = iniziali(nome);
+      document.getElementById('sb-iniziali').textContent = iniziali(nome);
 
       lucide.createIcons();
     }
 
-    // ====== AVANZA DI UNA SETTIMANA ======
-    function advance() {
-      const next = EVENTS[(eventIdx+1) % EVENTS.length];
-      const nh = {};
-      for (const a of ASSET_DEFS) {
-        if (a.id === 'cash') {
-          // La liquidità non segue il mercato: perde valore solo per l'inflazione.
-          nh.cash = holdings.cash * EROSIONE_SETTIMANALE;
-          continue;
-        }
-        const drift = (Math.random() - 0.45) * 0.03;      // un po' di casualità
-        const f = (next.fx[a.id] || 0) + drift;
-        nh[a.id] = Math.max(0, holdings[a.id] * (1 + f));
-      }
-      // Il bonus arriva DOPO l'inflazione: è denaro fresco appena ricevuto,
-      // non è "invecchiato" e quindi non lo tocca l'erosione di questa settimana.
-      nh.cash += BONUS_SETTIMANALE;
+    // ====== AVVIO: carica i progressi salvati, poi collega tutto ======
+    async function avvia() {
+      statoCompleto = await caricaStato();
+      settimana = statoCompleto.settimana;
+      xp = statoCompleto.xp;
+      eventIdx = statoCompleto.eventIdx;
+      azioni = statoCompleto.azioni;
+      // "Azioni" ed "ETF" non sono più numeri già pronti: sono posizioni
+      // possedute (quantità), il cui valore vero è quantità × prezzo di
+      // oggi - sommaAzioni() lo calcola, con la mappa prezzi appena letta.
+      holdings = {
+        cash: statoCompleto.cash, bond: statoCompleto.bond,
+        etf: sommaAzioni(statoCompleto.etf, statoCompleto.prezziMercato),
+        stock: sommaAzioni(azioni, statoCompleto.prezziMercato),
+        crypto: statoCompleto.crypto, realestate: statoCompleto.realestate,
+      };
+      // Il portafoglio COM'ERA prima che caricaStato() lo aggiornasse da
+      // sola (se era iniziata una nuova settimana vera): senza questo,
+      // le percentuali ▴/▾ confronterebbero il portafoglio con sé stesso.
+      prev = statoCompleto.holdingsPrecedenti || { ...holdings };
+      history = statoCompleto.history;
 
-      prev = holdings; holdings = nh;
-      history = history.slice(-11).concat(Object.values(nh).reduce((x,y)=>x+y,0));
-      eventIdx = (eventIdx+1) % EVENTS.length;
-      settimana++;
-      xp = Math.min(1000, xp + 35);
-      render();
+      // ====== COLLEGAMENTI (solo ora che lo stato è pronto) ======
+      document.getElementById('asset-grid').addEventListener('click', e => {
+        const b = e.target.closest('[data-id]'); if (b) { sel = b.dataset.id; render(); }
+      });
+      document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('#tabs button').forEach(x => x.classList.remove('on')); b.classList.add('on');
+      }));
+
+      render();  // disegna la prima volta
     }
 
-    // ====== COLLEGAMENTI ======
-    document.getElementById('asset-grid').addEventListener('click', e => {
-      const b = e.target.closest('[data-id]'); if (b) { sel = b.dataset.id; render(); }
-    });
-    document.getElementById('avanza').addEventListener('click', advance);
-    document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
-      document.querySelectorAll('#tabs button').forEach(x => x.classList.remove('on')); b.classList.add('on');
-    }));
-
-    render();  // disegna la prima volta
+    avvia();
   </script>
 </body>
 </html>

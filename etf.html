@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  BullRun · Azioni (la Borsa)
+  BullRun · ETF
   ============================================================
-  La prima delle "stanze" dedicate a un singolo asset: qui puoi
-  comprare azioni di 40 aziende VERE (prezzi veri, aggiornati ogni ora
-  da api/prezzi.js) e vendere quelle che possiedi. La liquidità è
-  sempre ben visibile, così sai sempre quanto puoi spendere.
+  Seconda "stanza" dedicata a un singolo asset, copiata dalla struttura
+  di azioni.html: qui puoi comprare quote di 5 ETF VERI (fondi che
+  seguono un pezzo di mercato, prezzi veri aggiornati ogni ora da
+  api/prezzi.js) e vendere quelli che possiedi. La liquidità è sempre
+  ben visibile, così sai sempre quanto puoi spendere.
 -->
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BullRun · Azioni</title>
+  <title>BullRun · ETF</title>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/site.css">
   <style>
@@ -49,9 +50,9 @@
     .sez__head h2 { margin: 0; font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--br-text); }
     .sez__head span { font-size: 13px; color: var(--br-text-dim); }
 
-    /* Portafoglio azioni possedute */
+    /* Portafoglio ETF posseduti */
     .holding-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .holding { --acc: var(--br-stock); background: var(--br-surface); border: 1px solid var(--acc); border-radius: var(--radius-lg);
+    .holding { --acc: var(--br-etf); background: var(--br-surface); border: 1px solid var(--acc); border-radius: var(--radius-lg);
       padding: 18px; box-shadow: 0 0 0 1px var(--acc), 0 0 22px -8px var(--acc); }
     .holding__top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .holding__ic { width: 34px; height: 34px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
@@ -66,9 +67,9 @@
     .holding-empty { grid-column: 1/-1; text-align: center; padding: 30px 16px; color: var(--br-text-dim); font-size: 13.5px;
       background: var(--br-surface); border: 1px dashed var(--br-line); border-radius: var(--radius-lg); }
 
-    /* Mercato: aziende disponibili */
+    /* Mercato: fondi disponibili */
     .market-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .market { --acc: var(--br-stock); background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg);
+    .market { --acc: var(--br-etf); background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg);
       padding: 16px; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
     .market:hover { transform: translateY(-3px); border-color: var(--br-line-strong); }
     .market__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -107,7 +108,7 @@
       </div>
     </header>
 
-    <!-- TICKER: le aziende che scorrono, come in home -->
+    <!-- TICKER: gli ETF che scorrono, come in home -->
     <div class="ticker" aria-hidden="true">
       <div class="ticker__track" id="ticker-track"></div>
     </div>
@@ -126,20 +127,20 @@
         <p class="liquidita-hero__nota">Quello che non hai investito. Ogni acquisto la riduce, ogni vendita la aumenta.</p>
       </div>
 
-      <!-- Il tuo portafoglio azioni -->
+      <!-- Il tuo portafoglio ETF -->
       <section>
         <div class="sez__head">
-          <h2>Il tuo portafoglio azioni</h2>
+          <h2>Il tuo portafoglio ETF</h2>
           <span>Vendi con un click</span>
         </div>
         <div class="holding-grid" id="holding-grid"></div>
       </section>
 
-      <!-- Mercato azionario -->
+      <!-- Mercato dei fondi -->
       <section>
         <div class="sez__head">
-          <h2>Mercato azionario</h2>
-          <span>Aziende disponibili per investire</span>
+          <h2>Fondi disponibili</h2>
+          <span>Ogni fondo è una "fetta" diversa di mercato</span>
         </div>
         <div class="market-grid" id="market-grid"></div>
       </section>
@@ -156,61 +157,28 @@
     const formattaNumero = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     const eur = n => '€ ' + formattaNumero(n);
 
-    // ====== Le aziende del mercato (40 aziende VERE) ======
+    // ====== I fondi del mercato (5 ETF VERI) ======
     // "id" è il ticker vero, lo stesso usato in api/prezzi.js: è la
-    // chiave con cui cerchiamo il prezzo di ognuna nella mappa prezzi.
-    const AZIENDE = [
-      { id:'AAPL', nome:'Apple',            icona:'smartphone' },
-      { id:'MSFT', nome:'Microsoft',        icona:'monitor' },
-      { id:'GOOGL',nome:'Alphabet (Google)',icona:'search' },
-      { id:'AMZN', nome:'Amazon',           icona:'package' },
-      { id:'TSLA', nome:'Tesla',            icona:'car' },
-      { id:'NVDA', nome:'Nvidia',           icona:'cpu' },
-      { id:'META', nome:'Meta',             icona:'users' },
-      { id:'NFLX', nome:'Netflix',          icona:'clapperboard' },
-      { id:'DIS',  nome:'Disney',           icona:'sparkles' },
-      { id:'NKE',  nome:'Nike',             icona:'footprints' },
-      { id:'MCD',  nome:"McDonald's",       icona:'utensils' },
-      { id:'KO',   nome:'Coca-Cola',        icona:'cup-soda' },
-      { id:'SBUX', nome:'Starbucks',        icona:'coffee' },
-      { id:'PYPL', nome:'PayPal',           icona:'credit-card' },
-      { id:'V',    nome:'Visa',             icona:'credit-card' },
-      { id:'ADBE', nome:'Adobe',            icona:'palette' },
-      { id:'SPOT', nome:'Spotify',          icona:'music' },
-      { id:'ABNB', nome:'Airbnb',           icona:'home' },
-      { id:'UBER', nome:'Uber',             icona:'map-pin' },
-      { id:'PEP',  nome:'PepsiCo',          icona:'cup-soda' },
-      { id:'MA',   nome:'Mastercard',       icona:'credit-card' },
-      { id:'INTC', nome:'Intel',            icona:'cpu' },
-      { id:'AMD',  nome:'AMD',              icona:'cpu' },
-      { id:'RBLX', nome:'Roblox',           icona:'gamepad-2' },
-      { id:'WMT',  nome:'Walmart',          icona:'shopping-cart' },
-      { id:'TGT',  nome:'Target',           icona:'target' },
-      { id:'COST', nome:'Costco',           icona:'shopping-basket' },
-      { id:'F',    nome:'Ford',             icona:'car' },
-      { id:'BA',   nome:'Boeing',           icona:'plane' },
-      { id:'DAL',  nome:'Delta Air Lines',  icona:'plane' },
-      { id:'EBAY', nome:'eBay',             icona:'shopping-cart' },
-      { id:'SHOP', nome:'Shopify',          icona:'shopping-bag' },
-      { id:'SNAP', nome:'Snap',             icona:'camera' },
-      { id:'PINS', nome:'Pinterest',        icona:'image' },
-      { id:'ZM',   nome:'Zoom',             icona:'video' },
-      { id:'CROX', nome:'Crocs',            icona:'footprints' },
-      { id:'HAS',  nome:'Hasbro',           icona:'puzzle' },
-      { id:'MAT',  nome:'Mattel',           icona:'baby' },
-      { id:'RACE', nome:'Ferrari',          icona:'car' },
-      { id:'HOG',  nome:'Harley-Davidson',  icona:'bike' },
+    // chiave con cui cerchiamo il prezzo di ognuno nella mappa prezzi.
+    // Niente ETF obbligazionari qui apposta: si sovrapporrebbero troppo
+    // all'asset "BTP", già un fondo diverso nel gioco.
+    const ETF = [
+      { id:'SPY',  nome:'SPDR S&P 500',                icona:'bar-chart-3' },
+      { id:'QQQ',  nome:'Invesco QQQ (Nasdaq 100)',     icona:'cpu' },
+      { id:'VXUS', nome:'Vanguard mercati internazionali', icona:'globe' },
+      { id:'IWM',  nome:'iShares Russell 2000 (piccole aziende)', icona:'sprout' },
+      { id:'VYM',  nome:'Vanguard alti dividendi',      icona:'piggy-bank' },
     ];
     const IMPORTO_ACQUISTO = 2000; // ogni click su "Compra" investe questa cifra fissa
 
     // ====== Lo stato ======
     // Partono "vuoti": li riempie avvia() più sotto, con i progressi
     // salvati - lo stesso "magazzino" condiviso con dashboard.html e
-    // profile.html (js/stato-gioco.js). "prezzi" arriva da lì: è la
+    // azioni.html (js/stato-gioco.js). "prezzi" arriva da lì: è la
     // mappa {ticker: prezzo} letta dalla tabella prezzi_mercato.
     let statoCompleto, liquidita, portafoglio, prezzi;
 
-    function aziendaById(id){ return AZIENDE.find(a => a.id === id); }
+    function fondoById(id){ return ETF.find(a => a.id === id); }
 
     function render(){
       $('tb-cash').textContent = eur(liquidita);
@@ -219,13 +187,13 @@
       // Portafoglio: il valore vero è sempre quantità posseduta × prezzo di oggi.
       const posseduti = Object.keys(portafoglio);
       if(posseduti.length === 0){
-        $('holding-grid').innerHTML = '<div class="holding-empty">Non possiedi ancora nessuna azione. Comprane una dal mercato qui sotto!</div>';
+        $('holding-grid').innerHTML = '<div class="holding-empty">Non possiedi ancora nessun ETF. Comprane uno dal mercato qui sotto!</div>';
       } else {
         $('holding-grid').innerHTML = posseduti.map(id => {
-          const a = aziendaById(id); const h = portafoglio[id];
+          const a = fondoById(id); const h = portafoglio[id];
           const prezzo = prezzi[id];
           const valore = prezzo ? h.quantita * prezzo : 0;
-          return '<div class="holding" style="--acc:var(--br-stock)">'
+          return '<div class="holding" style="--acc:var(--br-etf)">'
             + '<div class="holding__top"><span class="holding__ic"><i data-lucide="' + a.icona + '"></i></span>'
             + '<div><div class="holding__nome">' + a.nome + '</div><div class="holding__tick">' + a.id + '</div></div></div>'
             + '<div class="holding__val">' + eur(valore) + '</div>'
@@ -238,9 +206,9 @@
       // Mercato: se il prezzo non è ancora arrivato (il proxy non ha
       // ancora girato), il bottone "Compra" si disabilita con una nota,
       // invece di rompersi o comprare a un prezzo sbagliato.
-      $('market-grid').innerHTML = AZIENDE.map(a => {
+      $('market-grid').innerHTML = ETF.map(a => {
         const prezzo = prezzi[a.id];
-        return '<div class="market" style="--acc:var(--br-stock)">'
+        return '<div class="market" style="--acc:var(--br-etf)">'
           + '<div class="market__top"><span class="market__ic"><i data-lucide="' + a.icona + '"></i></span></div>'
           + '<div class="market__nome">' + a.nome + '</div>'
           + '<div class="market__tick">' + a.id + '</div>'
@@ -254,25 +222,25 @@
 
     // Mette insieme lo stato attuale nella forma che salvaStato() si aspetta.
     // Si parte da statoCompleto (così restano anche settimana/XP/skin, che
-    // questa pagina non tocca) e si aggiornano solo liquidità e azioni.
+    // questa pagina non tocca) e si aggiornano solo liquidità ed ETF.
     function statoCorrente() {
-      return { ...statoCompleto, cash: liquidita, azioni: portafoglio };
+      return { ...statoCompleto, cash: liquidita, etf: portafoglio };
     }
 
     // ====== AVVIO: carica i progressi salvati, poi collega tutto ======
     async function avvia() {
       statoCompleto = await caricaStato();
       liquidita = statoCompleto.cash;
-      portafoglio = statoCompleto.azioni;
+      portafoglio = statoCompleto.etf;
       prezzi = statoCompleto.prezziMercato;
 
-      // Ticker in alto: le stesse aziende del mercato, in scorrimento
+      // Ticker in alto: gli stessi fondi del mercato, in scorrimento
       // continuo. Dipende dai prezzi veri, quindi va costruito qui
       // dentro, dopo che sono arrivati.
       const trackTicker = $('ticker-track');
       const voceTicker = a => '<span class="ticker__item"><span class="ticker__nome">' + a.id + '</span>'
         + '<span class="ticker__val">' + (prezzi[a.id] ? eur(prezzi[a.id]) : '—') + '</span></span>';
-      trackTicker.innerHTML = AZIENDE.map(voceTicker).join('') + AZIENDE.map(voceTicker).join('');
+      trackTicker.innerHTML = ETF.map(voceTicker).join('') + ETF.map(voceTicker).join('');
 
       // ====== COLLEGAMENTI (solo ora che lo stato è pronto) ======
 

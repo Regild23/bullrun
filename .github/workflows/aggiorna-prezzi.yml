@@ -1,0 +1,23 @@
+# ============================================================
+#  BullRun · L'"orologio" che aggiorna i prezzi di mercato
+# ============================================================
+#  Questo file dice a GitHub: "una volta all'ora, nelle ore in cui
+#  qualcuno potrebbe star giocando (dalle 8 alle 24), suona il
+#  campanello di api/prezzi.js". Non usiamo il Cron di Vercel perché
+#  il suo piano gratuito accetta solo una volta al giorno - GitHub
+#  Actions è gratis sui repository pubblici (il nostro lo è) e non ha
+#  questo limite.
+
+name: Aggiorna i prezzi di mercato
+
+on:
+  schedule:
+    - cron: "0 8-23 * * *"   # ogni ora, solo dalle 8:00 alle 23:59
+  workflow_dispatch: {}       # permette anche di farlo partire a mano da GitHub
+
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chiama api/prezzi
+        run: curl --fail https://bullrun.infomaat.it/api/prezzi

@@ -26,8 +26,11 @@ portafoglio virtuale da 100.000€, senza rischiare un euro vero.
 8. [Le skin da collezionare](#8-le-skin-da-collezionare)
 9. [Rifiniture: economia reale, ticker, spiegazioni](#9-rifiniture-economia-reale-ticker-spiegazioni)
 10. [Le scatole da aprire: dal disegno statico al video 3D](#10-le-scatole-da-aprire-dal-disegno-statico-al-video-3d)
-11. [Stack tecnico in breve](#11-stack-tecnico-in-breve)
-12. [Cosa manca ancora (roadmap)](#12-cosa-manca-ancora-roadmap)
+11. [Il salvataggio vero: il gioco si ricorda di te](#11-il-salvataggio-vero-il-gioco-si-ricorda-di-te)
+12. [Il tempo di gioco diventa tempo reale](#12-il-tempo-di-gioco-diventa-tempo-reale)
+13. [Prezzi veri per Azioni ed ETF](#13-prezzi-veri-per-azioni-ed-etf)
+14. [Stack tecnico in breve](#14-stack-tecnico-in-breve)
+15. [Cosa manca ancora (roadmap)](#15-cosa-manca-ancora-roadmap)
 
 ---
 
@@ -291,7 +294,153 @@ animazione CSS.
 
 ---
 
-## 11. Stack tecnico in breve
+## 11. Il salvataggio vero: il gioco si ricorda di te
+
+**Obiettivo:** fino a questo momento, ricaricando la pagina il gioco
+ripartiva sempre dagli stessi valori di prova — patrimonio, settimana, XP,
+tutto si dimenticava. Era il primo punto della lista "cosa manca ancora"
+(capitolo 14): costruirlo davvero.
+
+**Cosa abbiamo costruito:**
+- Una tabella su **Supabase** (lo stesso "magazzino" già usato per il
+  login) con una riga per ogni giocatore: quanto ha in ogni asset, la
+  settimana, l'XP, le skin sbloccate, le scatole ancora da aprire.
+- Regole di sicurezza (si chiamano **RLS**, Row Level Security) che
+  garantiscono che ogni giocatore possa leggere e scrivere SOLO la
+  propria riga, mai quella di un altro — anche conoscendo la chiave
+  pubblica del sito.
+- Un file JavaScript condiviso (`js/stato-gioco.js`) con due sole funzioni
+  che ogni pagina usa: una per caricare i progressi all'apertura, una per
+  salvarli dopo ogni azione. Se non hai fatto login, o se qualcosa va
+  storto con la connessione, il gioco **non si blocca mai**: semplicemente
+  non salva, esattamente come prima.
+
+**🧩 Difficoltà — due "portafogli azioni" che non si parlavano.**
+Costruendo il salvataggio ci siamo accorti che la dashboard generale e la
+stanza "Azioni" (capitolo 9) tenevano due numeri completamente separati
+per lo stesso concetto — quanto vale il tuo investimento in azioni. Prima
+il problema si "risolveva da solo" ad ogni ricaricamento, perché tutto
+ripartiva da zero. Con un salvataggio vero, però, sarebbe rimasto un
+errore permanente e visibile per sempre. Abbiamo unificato tutto: ora
+esiste UNA sola fonte di verità (le posizioni possedute azienda per
+azienda), e la dashboard generale ne mostra sempre la somma.
+
+**🧩 Difficoltà — un numero che "scivolava" senza che nessuno se ne
+accorgesse.** Il "guadagno totale" veniva calcolato confrontando il
+patrimonio di oggi con il primo valore dello storico del grafico — ma
+quello storico tiene solo le ultime settimane (per non far diventare il
+grafico enorme), quindi con il tempo il confronto sarebbe diventato
+silenziosamente sbagliato. L'abbiamo scoperto **testando il gioco per
+decine di settimane di fila nel browser**, non a occhio guardando il
+codice. Soluzione: un campo separato che registra il vero capitale di
+partenza una volta sola, per sempre, e non viene più toccato.
+
+**Pulizia finale:** tolti i valori "gonfiati" usati solo per fare le
+prove (liquidità a 100 milioni, una scatola sempre pronta). Un nuovo
+giocatore parte ora con **€124.800** veri, esattamente come già
+dichiarato nel resto del sito, e una sola scatola "di benvenuto".
+
+---
+
+## 12. Il tempo di gioco diventa tempo reale
+
+**Cambio di game design:** fino a qui si avanzava di settimana premendo un
+bottone. Rileggendo il codice del salvataggio ci siamo chiesti: ha senso
+che il tempo del gioco dipenda da quante volte clicchi? Deciso di no — la
+settimana di gioco deve corrispondere alla vera settimana di calendario
+da quando ti sei iscritto. Il bottone "Avanza settimana" è sparito, ma **il
+concetto di settimana resta**: ogni giocatore ha sempre la sua, con un
+evento di mercato collegato — semplicemente non serve più cliccare per
+farla avanzare.
+
+**🧩 Difficoltà — nessun "orologio" acceso da qualche parte.** Il sito non
+ha un computer sempre acceso che tiene il tempo per conto suo (niente
+server dedicato, niente processo che gira in background). Soluzione: ogni
+volta che una pagina si apre, controlliamo quanto tempo vero è passato
+dall'iscrizione e, se è iniziata una nuova settimana, la simuliamo lì per
+lì — anche più di una in fila, una alla volta, se sei stato via a lungo.
+Succede tutto in un istante, prima ancora che la pagina inizi a
+disegnarsi.
+
+**🧩 Difficoltà — un secondo bug scoperto testando, non a occhio.**
+Togliendo il bottone stavamo per introdurre un problema nuovo: le
+percentuali di guadagno/perdita di ogni asset si sarebbero bloccate per
+sempre a "+0,0%", perché l'unica cosa che le faceva muovere prima era
+proprio il click sul bottone. Trovato simulando nel browser un giocatore
+"tornato dopo settimane di assenza", invece di aspettare settimane vere
+per accorgersene. Corretto salvando, ad ogni caricamento, una fotografia
+di "come stava il portafoglio un attimo prima di aggiornarsi".
+
+**💡 Idea per dopo (non ancora fatta):** gli eventi di mercato (le 5
+notizie che si alternano, capitolo 9) restano per ora un elenco fisso e
+inventato, che gira in ciclo — slegato da cosa succede davvero nel mondo.
+Ora che il tempo di gioco è tempo reale, l'idea naturale è collegarli a
+qualcosa di più vero: ancora tutta da progettare (vedi roadmap).
+
+---
+
+## 13. Prezzi veri per Azioni ed ETF
+
+**Obiettivo:** l'idea più ambiziosa fin qui. Non bastava più che il tempo di
+gioco fosse reale (capitolo 12): anche i PREZZI dovevano diventare veri,
+non più inventati da una formula interna. Le 8 aziende immaginarie
+("NovaTech" e le altre, capitolo 9) diventano **40 aziende vere** (Apple,
+Tesla, Nike, Roblox, Ferrari...), con **5 ETF veri** in una stanza tutta
+nuova.
+
+**Cosa abbiamo costruito:**
+- Un fornitore di dati di mercato vero (**Twelve Data**), scelto dopo aver
+  confrontato diverse alternative su affidabilità, limiti gratuiti e
+  facilità d'uso.
+- Il **primo pezzo di codice "server"** che questo sito abbia mai avuto:
+  `api/prezzi.js`, un piccolo "postino" che chiede i prezzi veri e li
+  scrive in una tabella condivisa (`prezzi_mercato`), letta da tutte le
+  pagine di gioco.
+- Azioni ed ETF non salvano più un euro già calcolato: salvano **quante
+  "quote" possiedi** di ognuno. Il valore vero si ottiene sempre
+  moltiplicando per il prezzo del momento — mai un numero vecchio.
+- Una nuova stanza, `etf.html`, gemella di `azioni.html`: il posto per
+  gli ETF nella cameretta esisteva già da tempo (uno dei 6 oggetti
+  cliccabili), ma portava ancora alla dashboard generale invece che a una
+  schermata sua. Sistemato.
+
+**🧩 Difficoltà — "una volta al giorno" non è tempo reale.** Il piano
+gratuito di Vercel, dove vive il sito, accetta aggiornamenti automatici
+("Cron Job") **solo una volta al giorno** — rifiuta proprio in fase di
+pubblicazione qualunque programmazione più frequente. Soluzione: il
+repository del codice è già pubblico su GitHub, e **GitHub Actions**
+offre programmazioni ricorrenti gratuite, senza quel limite. Risultato:
+i prezzi si aggiornano **ogni ora**, solo dalle 8 alle 24 (di notte,
+quando nessuno gioca, niente chiamate sprecate) — 40 aziende + 5 ETF
+restano comodamente dentro il budget gratuito giornaliero del fornitore
+dati.
+
+**🧩 Difficoltà — quante aziende mostrare?** Un vero negoziato in corso
+d'opera: prima proposte 100 (l'indice ufficiale S&P 100), poi il padre ha
+fatto notare che per dei ragazzini conta di più avere prezzi FRESCHI che
+100 nomi diversi — con meno aziende si liberano richieste per aggiornare
+più spesso. Ridotto a 20, poi rialzato ad **almeno 40** scelte a mano
+(nomi riconoscibili, non un indice ufficiale). La lezione: più titoli
+segui, meno spesso puoi permetterti di aggiornarli, a parità di budget
+gratuito — un compromesso vero, non solo tecnico.
+
+**🔒 Una decisione di sicurezza spiegata bene.** La nuova tabella dei
+prezzi non appartiene a nessun giocatore in particolare: chi può
+scriverci? Si poteva creare una "chiave segreta universale" (più potente,
+ma il progetto aveva deciso fin dall'inizio di non averne mai una), oppure
+riusare la stessa chiave pubblica di sempre, dandole il permesso di
+scrivere SOLO in quella tabella. Scelta la seconda: stessa chiave di
+sempre, nessun nuovo tipo di rischio introdotto — il danno peggiore
+possibile, se qualcuno ne abusasse, è "un prezzo sbagliato per un'ora",
+corretto da solo al giro successivo.
+
+**Ancora da fare:** eseguire lo schema aggiornato su Supabase e collegare
+una vera chiave Twelve Data — il codice è pronto, ma non ancora
+"acceso" sul sito vero.
+
+---
+
+## 14. Stack tecnico in breve
 
 | Livello | Tecnologia | Perché |
 |---|---|---|
@@ -299,7 +448,7 @@ animazione CSS.
 | Font | Google Fonts (Space Grotesk, DM Sans, JetBrains Mono) | Vedi capitolo 3 |
 | Icone | Lucide | Coerenti, leggere, no emoji |
 | Grafici | Chart.js / SVG disegnato a mano | Semplice da capire e modificare |
-| Autenticazione | Supabase (email + Google) | Gratuito, pronto all'uso, sicuro |
+| Autenticazione + salvataggio | Supabase (email + Google, più il "magazzino" dei progressi, capitolo 11) | Gratuito, pronto all'uso, sicuro |
 | Hosting | Vercel | Auto-deploy da GitHub, HTTPS automatico |
 | Dominio | bullrun.infomaat.it (DNS su TopHost) | Indirizzo professionale, non "di servizio" |
 | Codice sorgente | GitHub pubblico | I professori possono vederlo e verificarlo |
@@ -310,32 +459,45 @@ animazione CSS.
 - `hub.html` — "La tua cameretta" (il menu di gioco)
 - `dashboard.html` — La partita vera (portafoglio, asset, eventi, turni)
 - `azioni.html` — Prima "stanza" dedicata a un singolo asset: si comprano e
-  vendono azioni di aziende (inventate) con la propria liquidità
+  vendono azioni di 40 aziende VERE, a prezzi di mercato veri
+- `etf.html` — Seconda "stanza": stesso pattern di azioni.html, per 5 ETF veri
 - `profile.html` — Profilo giocatore, collezione skin e scatole da aprire
 - `classifica.html` — Classifica di Stagione 1
 
 ---
 
-## 12. Cosa manca ancora (roadmap)
+## 15. Cosa manca ancora (roadmap)
 
 Essere onesti su cosa è "vero" e cosa è ancora una base da completare è
 importante — anche questo si può raccontare in una slide ("il progetto continua"):
 
-- ⬜ **Salvataggio reale dei progressi** — oggi il gioco non ricorda nulla se
-  ricarichi la pagina: patrimonio, XP e settimana ripartono da un valore demo.
-- ⬜ **Classifica vera** — oggi mostra dati di esempio; serve il "magazzino"
-  condiviso dei punteggi di tutti i giocatori (backend Supabase).
-- ⬜ **Comprare/vendere per davvero** — oggi si può solo *selezionare* un asset
-  per vederne i dettagli, non spostare i propri soldi da un asset all'altro.
-- ⬜ **Sistema punti XP più ricco** — oggi si guadagna XP solo avanzando di
-  settimana; idee allo studio: bonus per l'accesso giornaliero, bonus quando si
-  ribilancia il portafoglio.
+- 🔶 **Salvataggio reale dei progressi** — costruito (capitolo 11): la
+  tabella su Supabase e il codice sono pronti. Manca l'ultimo passo pratico
+  (eseguire lo schema sul database vero) prima che sia davvero attivo.
+- ⬜ **Classifica vera** — oggi mostra dati di esempio; ogni riga del
+  salvataggio è visibile solo al proprio giocatore, di proposito, per
+  sicurezza — la classifica ha bisogno di una regola pensata apposta per
+  leggere i punteggi di tutti insieme.
+- 🔶 **Comprare/vendere per davvero** — fatto per Azioni ed ETF (capitoli
+  9 e 13): un click, un importo fisso da spendere, ma ora al **prezzo
+  vero** del momento (non più un numero inventato). Manca ancora per
+  Crypto, BTP e Immobili, e un vero importo variabile (oggi si spende
+  sempre €2.000 a click, non una cifra a scelta).
+- ⬜ **Sistema punti XP più ricco** — oggi si guadagna XP solo con il
+  passare del tempo (35 a settimana, automatico da capitolo 12); idee allo
+  studio: bonus per l'accesso giornaliero, bonus quando si ribilancia il
+  portafoglio.
 - ✅ **Sblocco delle skin** — fatto: si vincono aprendo scatole (capitolo 10).
-  Manca ancora **come si guadagnano le scatole** giocando (per ora ce n'è
-  sempre una pronta, di proposito, per poter continuare a testare).
-- 🔶 **Dashboard diverse per ogni asset** — iniziata: "Azioni" ha già la sua
-  schermata dedicata (mercato + portafoglio + vendita). Mancano ancora ETF,
-  Crypto, BTP e Immobili, che per ora portano alla dashboard generale.
+  Manca ancora **come si guadagnano le scatole** giocando (per ora c'è solo
+  quella "di benvenuto" data all'iscrizione).
+- 🔶 **Dashboard diverse per ogni asset** — Azioni ed ETF hanno già la loro
+  schermata dedicata (capitoli 9 e 13). Mancano ancora Crypto, BTP e
+  Immobili, che per ora portano alla dashboard generale.
+- 🔶 **Eventi di mercato collegati a qualcosa di vero** — fatto per Azioni
+  ed ETF (capitolo 13): i loro prezzi arrivano da un fornitore di dati
+  vero, aggiornato ogni ora. Le 5 "notizie" inventate (capitolo 9) restano
+  invece per Bond/Crypto/Immobili, ancora simulati - da collegare a
+  qualcosa di vero uno alla volta, come già fatto per Azioni/ETF.
 
 ---
 

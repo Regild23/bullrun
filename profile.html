@@ -142,8 +142,8 @@
     <div class="card prof">
       <div class="av-big">
         <div class="ring"><div class="face"><img id="big-img" alt="La tua skin"></div></div>
-        <span class="lvl">7</span>
-        <div class="xp"><div class="bar"><i></i></div><div class="t">740 / 1000 XP</div></div>
+        <span class="lvl" id="p-livello">1</span>
+        <div class="xp"><div class="bar"><i id="p-xp-fill" style="width:0%"></i></div><div class="t" id="p-xp-testo">0 / 1000 XP</div></div>
       </div>
       <div class="prof__form">
         <label for="username">Username</label>
@@ -196,6 +196,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/stato-gioco.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     const $ = id => document.getElementById(id);
@@ -215,29 +216,11 @@
       { id:'pixar',      name:'Pastello',    file:'bull-pixar.png',      locked:true },
     ];
 
-    // Le skin sbloccate aprendo scatole restano sbloccate anche dopo aver
-    // ricaricato la pagina: le leggiamo dal browser e le applichiamo qui.
-    try {
-      const sbloccateSalvate = JSON.parse(localStorage.getItem('br_skin_sbloccate') || '[]');
-      SKINS.forEach(s => { if (sbloccateSalvate.includes(s.id)) s.locked = false; });
-    } catch (e) { /* niente di salvato, va bene così */ }
-
-    function salvaSbloccate() {
-      localStorage.setItem('br_skin_sbloccate', JSON.stringify(SKINS.filter(s => !s.locked).map(s => s.id)));
-    }
-
-    // Stato salvato nel browser
-    let username = localStorage.getItem('br_username') || 'Giocatore';
-    let equipped = localStorage.getItem('br_skin') || 'classica';
-    // ⚠️ VALORE DI TEST: finché non esiste un vero modo di guadagnare le
-    // scatole giocando, ne teniamo SEMPRE almeno 1 pronta, così si può
-    // continuare a provare l'apertura. Da togliere quando ci sarà un vero
-    // sistema (es. scatole vinte avanzando di settimana, per livello, ecc).
-    let scatole = parseInt(localStorage.getItem('br_scatole') ?? '1', 10);
-    if (scatole < 1) {
-      scatole = 1;
-      localStorage.setItem('br_scatole', scatole);
-    }
+    // Lo stato (username, skin equipaggiata, skin sbloccate, scatole) non
+    // parte più da valori fissi o dal localStorage: arriva da caricaStato(),
+    // dentro avvia() più sotto - lo stesso "magazzino" condiviso con
+    // dashboard.html e azioni.html (js/stato-gioco.js).
+    let statoCompleto, username, equipped, scatole;
 
     function skinById(id) { return SKINS.find(s => s.id === id) || SKINS[0]; }
 
@@ -246,6 +229,12 @@
       const eq = skinById(equipped);
       $('big-img').src = 'assets/skin/' + eq.file;
       $('username').value = username;
+
+      // Livello e XP: ricavati dallo stesso XP di dashboard.html, mai un numero fisso.
+      const { livello, progresso } = livelloDa(statoCompleto.xp);
+      $('p-livello').textContent = livello;
+      $('p-xp-fill').style.width = (progresso/10) + '%';
+      $('p-xp-testo').textContent = progresso + ' / 1000 XP';
 
       // Griglia skin
       $('skin-grid').innerHTML = SKINS.map(s => {
@@ -281,45 +270,27 @@
       lucide.createIcons();
     }
 
-    // Click su una skin: la equipaggi (se sbloccata) oppure ti dice come sbloccarla.
-    $('skin-grid').addEventListener('click', e => {
-      const el = e.target.closest('[data-id]'); if (!el) return;
-      const s = skinById(el.dataset.id);
-      if (s.locked) { mostra('Ancora bloccata — aprila con una scatola!', false); return; }
-      equipped = s.id; localStorage.setItem('br_skin', equipped);
-      render(); mostra('Skin "' + s.name + '" equipaggiata!', true);
-    });
-
-    // Salva username
-    $('salva').addEventListener('click', () => {
-      username = ($('username').value.trim() || 'Giocatore');
-      localStorage.setItem('br_username', username);
-      render(); mostra('Profilo salvato!', true);
-    });
-
     let msgTimer;
     function mostra(t, ok) {
       const m = $('msg'); m.textContent = t; m.style.color = ok ? 'var(--br-up)' : 'var(--br-warn)';
       clearTimeout(msgTimer); msgTimer = setTimeout(() => { m.textContent = ''; }, 3000);
     }
 
-    // Email dal login Supabase (se hai fatto accesso). Se non sei loggato
-    // restiamo semplicemente su "—", senza chiederti di accedere qui.
-    (async () => {
-      try { const u = await utenteAttuale(); if (u && u.email) $('email').textContent = u.email; }
-      catch (e) { /* nessun account collegato, va bene così */ }
-    })();
+    // Mette insieme lo stato attuale nella forma che salvaStato() si aspetta.
+    // Si parte da statoCompleto (così restano anche settimana/XP/portafoglio,
+    // che questa pagina non tocca) e si aggiornano solo i pezzi del profilo.
+    function statoCorrente() {
+      return {
+        ...statoCompleto,
+        username, scatole,
+        skinEquipaggiata: equipped,
+        skinSbloccate: SKINS.filter(s => !s.locked).map(s => s.id),
+      };
+    }
 
     // ====== Apertura scatola: pannello + video (fatto in Blender) + premio ======
     const modal = $('box-modal');
     const video = $('box-video');
-
-    $('box-grid').addEventListener('click', e => {
-      if (e.target.closest('[data-apri]')) apriPannello();
-    });
-    $('box-chiudi').addEventListener('click', chiudiPannello);
-    $('box-apri').addEventListener('click', apriScatolaOra);
-    $('box-continua').addEventListener('click', () => { chiudiPannello(); render(); });
 
     function apriPannello() {
       video.pause();
@@ -347,7 +318,7 @@
       video.addEventListener('ended', mostraPremio, { once: true });
     }
 
-    function mostraPremio() {
+    async function mostraPremio() {
       const bloccate = SKINS.filter(s => s.locked);
 
       if (bloccate.length === 0) {
@@ -363,8 +334,6 @@
       const vinta = bloccate[Math.floor(Math.random() * bloccate.length)];
       vinta.locked = false;
       scatole = Math.max(0, scatole - 1);
-      localStorage.setItem('br_scatole', scatole);
-      salvaSbloccate();
 
       $('box-titolo').textContent = 'Scatola aperta!';
       $('reward-img').src = 'assets/skin/' + vinta.file;
@@ -372,9 +341,60 @@
       $('box-reward').classList.add('on');
       $('box-continua').style.display = '';
       lucide.createIcons();
+
+      // Qui il giocatore ha appena visto l'animazione e il premio: se il
+      // salvataggio fallisce avvisiamo a schermo (nelle altre pagine basta
+      // un avviso in console - sparire un premio appena vinto senza dirlo
+      // sarebbe peggio).
+      const risultato = await salvaStato(statoCorrente());
+      if (!risultato.ok) mostra('Non siamo riusciti a salvare la scatola aperta: riprova più tardi.', false);
     }
 
-    render();
+    // ====== AVVIO: carica i progressi salvati, poi collega tutto ======
+    async function avvia() {
+      statoCompleto = await caricaStato();
+      username = statoCompleto.username;
+      equipped = statoCompleto.skinEquipaggiata;
+      scatole = statoCompleto.scatole;
+      SKINS.forEach(s => { if (statoCompleto.skinSbloccate.includes(s.id)) s.locked = false; });
+
+      // ====== COLLEGAMENTI (solo ora che lo stato è pronto) ======
+
+      // Click su una skin: la equipaggi (se sbloccata) oppure ti dice come sbloccarla.
+      $('skin-grid').addEventListener('click', e => {
+        const el = e.target.closest('[data-id]'); if (!el) return;
+        const s = skinById(el.dataset.id);
+        if (s.locked) { mostra('Ancora bloccata — aprila con una scatola!', false); return; }
+        equipped = s.id;
+        render();
+        mostra('Skin "' + s.name + '" equipaggiata!', true);
+        salvaStato(statoCorrente());
+      });
+
+      // Salva username
+      $('salva').addEventListener('click', () => {
+        username = ($('username').value.trim() || 'Giocatore');
+        render();
+        mostra('Profilo salvato!', true);
+        salvaStato(statoCorrente());
+      });
+
+      $('box-grid').addEventListener('click', e => {
+        if (e.target.closest('[data-apri]')) apriPannello();
+      });
+      $('box-chiudi').addEventListener('click', chiudiPannello);
+      $('box-apri').addEventListener('click', apriScatolaOra);
+      $('box-continua').addEventListener('click', () => { chiudiPannello(); render(); });
+
+      // Email dal login Supabase (se hai fatto accesso). Se non sei loggato
+      // restiamo semplicemente su "—", senza chiederti di accedere qui.
+      try { const u = await utenteAttuale(); if (u && u.email) $('email').textContent = u.email; }
+      catch (e) { /* nessun account collegato, va bene così */ }
+
+      render();
+    }
+
+    avvia();
   </script>
 </body>
 </html>
