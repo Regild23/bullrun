@@ -248,11 +248,12 @@
         <span class="br-eyebrow">Colleziona le skin</span>
         <h2 class="section__title">Il tuo toro, a modo tuo</h2>
       </div>
-      <div class="skin-carousel">
-        <div class="skin-track" id="skin-track">
+      <div class="skin-3d" id="skin-3d">
+        <div class="skin-3d__stage" id="skin-3d-stage">
           <!-- Le card vengono generate dal JS in fondo alla pagina -->
         </div>
       </div>
+      <p class="skin-3d__hint">Trascinalo per farlo girare</p>
     </div>
   </section>
 
@@ -464,8 +465,9 @@
     aggiornaCountdown();
     setInterval(aggiornaCountdown, 1000);
 
-    // Il carosello delle skin: duplichiamo la lista una volta, così lo
-    // scorrimento (in site.css) può ripartire da capo senza "salti".
+    // Il carosello 3D delle skin: le card stanno disposte in cerchio nello
+    // spazio (la matematica dell'angolo è in CSS, vedi .skin-3d__card in
+    // site.css) - qui costruiamo solo le card e diciamo quante sono (--n).
     const SKIN = [
       { file: 'bull-classica.png', nome: 'Classica' },
       { file: 'bull-fuoco.png', nome: 'Fuoco' },
@@ -477,10 +479,77 @@
       { file: 'bull-anni20.png', nome: 'Anni 20' },
       { file: 'bull-pixar.png', nome: 'Pastello' },
     ];
-    const trackSkin = document.getElementById('skin-track');
-    const cardSkin = s => '<div class="skin-card"><img src="assets/skin/' + s.file + '" alt="Skin ' + s.nome + '" loading="lazy">'
-      + '<div class="nome">' + s.nome + '</div><div class="stato">Da collezionare</div></div>';
-    trackSkin.innerHTML = SKIN.map(cardSkin).join('') + SKIN.map(cardSkin).join('');
+    const stage3d = document.getElementById('skin-3d-stage');
+    stage3d.style.setProperty('--n', SKIN.length);
+    stage3d.innerHTML = SKIN.map((s, i) =>
+      '<div class="skin-3d__card" style="--i:' + i + '"><img src="assets/skin/' + s.file + '" alt="Skin ' + s.nome + '" loading="lazy">'
+      + '<div class="nome">' + s.nome + '</div><div class="stato">Da collezionare</div></div>'
+    ).join('');
+
+    // ====== Far girare la giostra 3D ======
+    // "rotazione" è l'angolo attuale (in gradi). "velocita" è quanto
+    // veloce sta girando in questo momento (gradi al secondo) - parte
+    // come un vento leggero e costante (VELOCITA_RIPOSO), così il
+    // carosello si vede sempre "vivo" anche se nessuno lo tocca, proprio
+    // come faceva prima il nastro che scorreva da solo.
+    const VELOCITA_RIPOSO = 6;
+    let rotazione = 0;
+    let velocita = VELOCITA_RIPOSO;
+    let velocitaObiettivo = VELOCITA_RIPOSO;   // 0 quando il mouse è sopra: si ferma ad aspettare
+    let trascinando = false;
+    let ultimoX = 0, ultimoTempo = 0, velocitaDelTrascinamento = 0;
+    let ultimoFotogramma = null;
+
+    const skin3d = document.getElementById('skin-3d');
+
+    // Un fotogramma del "motore": se non stai trascinando, applica la
+    // velocità attuale e la lascia rilassare verso l'obiettivo - proprio
+    // come farebbe l'attrito su una vera ruota lanciata a mano.
+    function fotogramma(adesso) {
+      if (ultimoFotogramma === null) ultimoFotogramma = adesso;
+      const dt = (adesso - ultimoFotogramma) / 1000;
+      ultimoFotogramma = adesso;
+
+      if (!trascinando) {
+        rotazione += velocita * dt;
+        velocita += (velocitaObiettivo - velocita) * Math.min(1, dt * 2);
+        stage3d.style.transform = 'rotateY(' + rotazione + 'deg)';
+      }
+      requestAnimationFrame(fotogramma);
+    }
+    requestAnimationFrame(fotogramma);
+
+    // Trascinamento col mouse o col dito (gli eventi "pointer" funzionano
+    // per entrambi, senza dover scrivere due volte la stessa logica).
+    skin3d.addEventListener('pointerdown', e => {
+      trascinando = true;
+      ultimoX = e.clientX;
+      ultimoTempo = performance.now();
+      velocitaDelTrascinamento = 0;
+      skin3d.setPointerCapture(e.pointerId);
+    });
+    skin3d.addEventListener('pointermove', e => {
+      if (!trascinando) return;
+      const adesso = performance.now();
+      const dt = Math.max(1, adesso - ultimoTempo);           // mai 0: eviterebbe una divisione impossibile
+      const spostamento = (e.clientX - ultimoX) * 0.5;          // 0.5 = quanto è "sensibile" il trascinamento
+      rotazione += spostamento;
+      velocitaDelTrascinamento = spostamento / (dt / 1000);
+      stage3d.style.transform = 'rotateY(' + rotazione + 'deg)';
+      ultimoX = e.clientX; ultimoTempo = adesso;
+    });
+    const fineTrascinamento = () => {
+      if (!trascinando) return;
+      trascinando = false;
+      velocita = velocitaDelTrascinamento;   // continua a girare con lo slancio della mano
+    };
+    skin3d.addEventListener('pointerup', fineTrascinamento);
+    skin3d.addEventListener('pointercancel', fineTrascinamento);
+
+    // Mentre il mouse è sopra, si ferma ad aspettare (era così anche col
+    // vecchio nastro scorrevole) - torna a girare da solo quando esci.
+    skin3d.addEventListener('pointerenter', () => { velocitaObiettivo = 0; });
+    skin3d.addEventListener('pointerleave', () => { velocitaObiettivo = VELOCITA_RIPOSO; });
 
     // Il ticker in alto: valori ILLUSTRATIVI (non un collegamento a dati di
     // mercato reali), solo per dare atmosfera da "notizie finanziarie".
