@@ -1,15 +1,19 @@
 # ============================================================
 #  BullRun · L'"orologio" che aggiorna le schede dei titoli
 # ============================================================
-#  Gemello di aggiorna-prezzi.yml, ma molto meno frequente: settore,
-#  chi guida l'azienda e la capitalizzazione cambiano lentissimamente,
-#  a differenza del prezzo - una volta a settimana basta e avanza.
+#  Gemello di aggiorna-prezzi.yml. Girava a settimana, ma con solo 8
+#  "crediti" Twelve Data disponibili al minuto (vedi la nota in cima ad
+#  api/profili.js) ogni chiamata riesce a chiedere CEO e capitalizzazione
+#  solo per 4 titoli a turno - per questo ora gira una volta AL GIORNO,
+#  cosi' in circa 12 giorni passa su tutti e 45. Settore e curiosita'
+#  (scritti a mano, senza Twelve Data) restano comunque aggiornati per
+#  tutti fin dal primo giorno.
 
 name: Aggiorna le schede dei titoli
 
 on:
   schedule:
-    - cron: "0 6 * * 1"   # ogni lunedì alle 6:00 UTC
+    - cron: "0 6 * * *"   # ogni giorno alle 6:00 UTC
   workflow_dispatch: {}     # permette anche di farlo partire a mano da GitHub
 
 jobs:

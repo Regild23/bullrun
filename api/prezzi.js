@@ -36,6 +36,22 @@ const SIMBOLI = [
   'SPY', 'QQQ', 'VXUS', 'IWM', 'VYM',
 ];
 
+// ⚠️ SCOPERTO IN PRODUZIONE: Twelve Data conta 1 "credito" per ogni
+// simbolo chiesto, ANCHE dentro un'unica chiamata "a gruppo" come questa
+// - e il piano gratuito ne accetta solo 8 AL MINUTO (non solo 800 al
+// giorno, come pensavamo). Chiedere tutti e 45 insieme sforava subito
+// il limite e Twelve Data rispondeva sempre con errore 429, senza mai
+// scrivere un prezzo. Soluzione: ogni volta chiediamo solo una fetta di
+// 8 titoli, a turno (quale fetta dipende dall'ora) - in circa 6 ore
+// passiamo su tutti e 45, restando sempre sotto il limite del minuto.
+const SIMBOLI_PER_GRUPPO = 8;
+const NUMERO_GRUPPI = Math.ceil(SIMBOLI.length / SIMBOLI_PER_GRUPPO);
+
+function gruppoDiTurno() {
+  const indice = new Date().getUTCHours() % NUMERO_GRUPPI;
+  return SIMBOLI.slice(indice * SIMBOLI_PER_GRUPPO, indice * SIMBOLI_PER_GRUPPO + SIMBOLI_PER_GRUPPO);
+}
+
 export default async function handler(req, res) {
   const chiaveTwelveData = process.env.TWELVE_DATA_API_KEY;
   if (!chiaveTwelveData) {
@@ -43,11 +59,13 @@ export default async function handler(req, res) {
     return;
   }
 
+  const gruppo = gruppoDiTurno();
+
   try {
-    // Un'unica chiamata "a gruppo" per tutti i simboli insieme, invece
-    // di una chiamata per ognuno: risparmia moltissimo sul limite
-    // giornaliero di richieste di Twelve Data.
-    const urlTwelveData = 'https://api.twelvedata.com/price?symbol=' + SIMBOLI.join(',') + '&apikey=' + chiaveTwelveData;
+    // Un'unica chiamata "a gruppo" per gli 8 simboli di turno, invece di
+    // una chiamata per ognuno: risparmia sul numero di richieste, anche
+    // se il costo in crediti resta 1 per simbolo (vedi nota sopra).
+    const urlTwelveData = 'https://api.twelvedata.com/price?symbol=' + gruppo.join(',') + '&apikey=' + chiaveTwelveData;
     const rispostaTD = await fetch(urlTwelveData);
     const datiTD = await rispostaTD.json();
 
@@ -57,7 +75,7 @@ export default async function handler(req, res) {
     // La prima volta che si prova con una chiave vera, controllare che
     // la forma della risposta sia davvero questa: è la riga giusta da
     // correggere se Twelve Data rispondesse in modo diverso.
-    const righe = SIMBOLI
+    const righe = gruppo
       .filter(simbolo => datiTD[simbolo] && datiTD[simbolo].price)
       .map(simbolo => ({
         simbolo: simbolo,

@@ -35,16 +35,6 @@
 
     .az-main { flex: 1; max-width: 1180px; width: 100%; margin: 0 auto; padding: 26px 32px 60px; display: flex; flex-direction: column; gap: 30px; }
 
-    /* Liquidità in grande evidenza */
-    .liquidita-hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px;
-      padding: 26px 28px; }
-    .liquidita-hero__ic { width: 54px; height: 54px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
-      background: var(--br-gradient); color: var(--br-ink); flex: none; }
-    .liquidita-hero__ic svg.lucide { width: 26px; height: 26px; }
-    .liquidita-hero__val { font-family: var(--font-mono); font-weight: 800; font-size: 40px; color: var(--br-text); text-shadow: var(--glow-text-green); line-height: 1; }
-    .liquidita-hero__lab { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--br-text-dim); margin-bottom: 6px; }
-    .liquidita-hero__nota { font-size: 13px; color: var(--br-text-muted); max-width: 260px; text-align: right; }
-
     .sez__head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
     .sez__head h2 { margin: 0; font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--br-text); }
     .sez__head span { font-size: 13px; color: var(--br-text-dim); }
@@ -81,41 +71,39 @@
     .market__tick { font-family: var(--font-mono); font-size: 10.5px; color: var(--br-text-dim); margin-bottom: 6px; }
     .market__prezzo { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--br-text); margin-bottom: 10px; }
     .market .btn { width: 100%; }
+    .market--attivo { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc), 0 0 16px -6px var(--acc); }
 
-    /* Pannello di dettaglio: grafico + scheda azienda, aperto cliccando una card */
-    .market-modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center;
-      background: rgba(6,8,13,.75); backdrop-filter: blur(6px); padding: 20px; }
-    .market-modal.on { display: flex; }
-    .market-modal__panel { position: relative; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
-      background: var(--br-surface); border: 1px solid var(--br-line-strong); border-radius: var(--radius-xl);
-      padding: 30px 28px 28px; box-shadow: var(--shadow-lg); }
-    .market-modal__close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
-      background: var(--br-surface-2); border: 1px solid var(--br-line); color: var(--br-text-muted); cursor: pointer;
-      display: flex; align-items: center; justify-content: center; }
-    .market-modal__close svg.lucide { width: 17px; height: 17px; }
-    .market-modal__head { display: flex; align-items: center; gap: 12px; margin: 4px 34px 18px 0; }
-    .market-modal__ic { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center;
+    /* Pannello del titolo: grafico + scheda azienda, sempre visibile in
+       pagina - cambia titolo cliccando una card del mercato qui sotto,
+       invece di aprirsi/chiudersi come un popup. */
+    .dettaglio { padding: 24px 26px; }
+    .dettaglio__head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+    .dettaglio__ic { width: 46px; height: 46px; border-radius: var(--radius-sm); display: flex; align-items: center;
       justify-content: center; background: rgba(255,255,255,.05); color: var(--br-stock); flex: none; }
-    .market-modal__ic svg.lucide { width: 21px; height: 21px; }
-    .market-modal__head h3 { margin: 0; font-family: var(--font-display); font-size: 19px; color: var(--br-text); }
-    .market-modal__tick { font-family: var(--font-mono); font-size: 11.5px; color: var(--br-text-dim); }
-    .market-modal__prezzo { margin-left: auto; font-family: var(--font-mono); font-weight: 700; font-size: 20px; color: var(--br-text); }
-    .market-modal__chart { height: 300px; margin-bottom: 18px; border-radius: var(--radius-md); overflow: hidden; background: var(--br-surface-2); }
-    .mm-scheda { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
-    .mm-riga { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; }
-    .mm-riga span { color: var(--br-text-dim); }
-    .mm-riga b { color: var(--br-text); font-weight: 600; text-align: right; }
-    .mm-curiosita { font-size: 13px; color: var(--br-text-muted); line-height: 1.5; padding-top: 12px; border-top: 1px solid var(--br-line); margin-bottom: 20px; }
+    .dettaglio__ic svg.lucide { width: 23px; height: 23px; }
+    .dettaglio__head h2 { margin: 0; font-family: var(--font-display); font-size: 20px; color: var(--br-text); }
+    .dettaglio__tick { font-family: var(--font-mono); font-size: 12px; color: var(--br-text-dim); }
+    .dettaglio__prezzo { margin-left: auto; font-family: var(--font-mono); font-weight: 700; font-size: 22px; color: var(--br-text); }
+    .dettaglio__body { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .dettaglio__chart { height: 360px; border-radius: var(--radius-md); overflow: hidden; background: var(--br-surface-2); }
+    .dettaglio__info .btn { width: 100%; margin-bottom: 16px; }
+    .dt-scheda { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+    .dt-riga { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; }
+    .dt-riga span { color: var(--br-text-dim); }
+    .dt-riga b { color: var(--br-text); font-weight: 600; text-align: right; }
+    .dt-curiosita { font-size: 13px; color: var(--br-text-muted); line-height: 1.55; }
 
-    @media (max-width: 920px) { .holding-grid { grid-template-columns: 1fr 1fr; } .market-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 920px) {
+      .holding-grid { grid-template-columns: 1fr 1fr; } .market-grid { grid-template-columns: 1fr 1fr; }
+      .dettaglio__body { grid-template-columns: 1fr; }
+      .dettaglio__chart { height: 300px; }
+    }
     @media (max-width: 560px) {
       .holding-grid, .market-grid { grid-template-columns: 1fr; }
       .topbar { padding: 12px 16px; } .az-main { padding: 22px 16px 50px; }
-      .liquidita-hero { flex-direction: column; align-items: flex-start; }
-      .liquidita-hero__nota { text-align: left; }
-      .market-modal__chart { height: 220px; }
-      .market-modal__head { flex-wrap: wrap; }
-      .market-modal__prezzo { margin-left: 54px; width: 100%; text-align: left; font-size: 17px; }
+      .dettaglio { padding: 20px 18px; }
+      .dettaglio__prezzo { margin-left: 60px; width: 100%; font-size: 18px; }
+      .dettaglio__chart { height: 220px; }
     }
   </style>
 </head>
@@ -142,17 +130,27 @@
 
     <main class="az-main">
 
-      <!-- Liquidità sempre in evidenza -->
-      <div class="card liquidita-hero">
-        <div style="display:flex; align-items:center; gap:16px;">
-          <span class="liquidita-hero__ic"><i data-lucide="wallet"></i></span>
+      <!-- Il titolo che stai guardando: grafico + scheda azienda. Cambia
+           cliccando una card nel mercato qui sotto (niente popup: resta
+           sempre qui, si aggiorna sul posto). -->
+      <section class="card dettaglio" id="dettaglio-pannello">
+        <div class="dettaglio__head">
+          <span class="dettaglio__ic" id="dt-ic"><i data-lucide="circle"></i></span>
           <div>
-            <div class="liquidita-hero__lab">Liquidità disponibile</div>
-            <div class="liquidita-hero__val" id="liquidita-val">€ 0</div>
+            <h2 id="dt-nome">—</h2>
+            <div class="dettaglio__tick" id="dt-tick">—</div>
+          </div>
+          <div class="dettaglio__prezzo" id="dt-prezzo">—</div>
+        </div>
+        <div class="dettaglio__body">
+          <div class="dettaglio__chart" id="tv-grafico"></div>
+          <div class="dettaglio__info">
+            <button class="btn btn--primary" id="dt-compra">Compra</button>
+            <div class="dt-scheda" id="dt-scheda"></div>
+            <p class="dt-curiosita" id="dt-curiosita"></p>
           </div>
         </div>
-        <p class="liquidita-hero__nota">Quello che non hai investito. Ogni acquisto la riduce, ogni vendita la aumenta.</p>
-      </div>
+      </section>
 
       <!-- Il tuo portafoglio azioni -->
       <section>
@@ -173,25 +171,6 @@
       </section>
 
     </main>
-  </div>
-
-  <!-- Pannello di dettaglio: grafico + scheda azienda -->
-  <div class="market-modal" id="market-modal">
-    <div class="market-modal__panel">
-      <button class="market-modal__close" id="mm-chiudi" aria-label="Chiudi"><i data-lucide="x"></i></button>
-      <div class="market-modal__head">
-        <span class="market-modal__ic" id="mm-ic"><i data-lucide="circle"></i></span>
-        <div>
-          <h3 id="mm-nome">—</h3>
-          <div class="market-modal__tick" id="mm-tick">—</div>
-        </div>
-        <div class="market-modal__prezzo" id="mm-prezzo">—</div>
-      </div>
-      <div class="market-modal__chart" id="tv-grafico"></div>
-      <div class="mm-scheda" id="mm-scheda"></div>
-      <p class="mm-curiosita" id="mm-curiosita"></p>
-      <button class="btn btn--primary btn--lg" id="mm-compra" style="width:100%;">Compra</button>
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -259,7 +238,7 @@
     // profile.html (js/stato-gioco.js). "prezzi" arriva da lì: è la
     // mappa {ticker: prezzo} letta dalla tabella prezzi_mercato.
     let statoCompleto, liquidita, portafoglio, prezzi, profili;
-    let idAperto = null;   // ticker aperto nel pannello di dettaglio, o null se chiuso
+    let simboloSelezionato = AZIENDE[0].id;   // quale titolo mostra il pannello sopra - si parte dal primo della lista
 
     function aziendaById(id){ return AZIENDE.find(a => a.id === id); }
 
@@ -274,7 +253,6 @@
 
     function render(){
       $('tb-cash').textContent = eur(liquidita);
-      $('liquidita-val').textContent = eur(liquidita);
 
       // Portafoglio: il valore vero è sempre quantità posseduta × prezzo di oggi.
       const posseduti = Object.keys(portafoglio);
@@ -295,11 +273,13 @@
         }).join('');
       }
 
-      // Mercato: clic sulla card (o sul bottone) apre il pannello con
-      // grafico e scheda azienda - "Compra" vero e proprio è lì dentro.
+      // Mercato: clic sulla card (o sul bottone) aggiorna il pannello sopra
+      // con grafico e scheda azienda - "Compra" vero e proprio è lì dentro.
+      // La card del titolo mostrato al momento resta evidenziata (--attivo).
       $('market-grid').innerHTML = AZIENDE.map(a => {
         const prezzo = prezzi[a.id];
-        return '<div class="market" data-dettagli="' + a.id + '" style="--acc:var(--br-stock)">'
+        const attivo = a.id === simboloSelezionato ? ' market--attivo' : '';
+        return '<div class="market' + attivo + '" data-dettagli="' + a.id + '" style="--acc:var(--br-stock)">'
           + '<div class="market__top"><span class="market__ic"><i data-lucide="' + a.icona + '"></i></span></div>'
           + '<div class="market__nome">' + a.nome + '</div>'
           + '<div class="market__tick">' + a.id + '</div>'
@@ -310,9 +290,9 @@
 
       lucide.createIcons();
 
-      // Se il pannello di dettaglio è aperto, il bottone "Compra" dentro
-      // deve restare coerente con la liquidità appena aggiornata.
-      aggiornaBottoneCompraModal();
+      // Il bottone "Compra" nel pannello deve restare coerente con la
+      // liquidità appena aggiornata (es. dopo un acquisto).
+      aggiornaBottoneCompra();
     }
 
     // Comprare, che sia dal pannello di dettaglio: importo fisso, quantità
@@ -329,37 +309,37 @@
     }
 
     // Tiene il bottone "Compra" del pannello coerente con prezzo/liquidità
-    // di oggi - anche se il pannello resta aperto dopo un acquisto.
-    function aggiornaBottoneCompraModal(){
-      if(!idAperto) return;
-      const prezzo = prezzi[idAperto];
-      const btn = $('mm-compra');
+    // di oggi - es. subito dopo un acquisto, senza dover ricliccare nulla.
+    function aggiornaBottoneCompra(){
+      const prezzo = prezzi[simboloSelezionato];
+      const btn = $('dt-compra');
       btn.disabled = !prezzo || liquidita < IMPORTO_ACQUISTO;
       btn.textContent = 'Compra · ' + eur(IMPORTO_ACQUISTO);
     }
 
-    // Apre il pannello di dettaglio: nome/prezzo, il grafico TradingView
+    // Aggiorna il pannello del titolo: nome/prezzo, il grafico TradingView
     // (storico vero, nessuna chiave API nostra) e la scheda azienda coi
-    // soli campi che ci sono davvero (vedi api/profili.js).
-    function apriDettaglio(id){
+    // soli campi che ci sono davvero (vedi api/profili.js). Niente popup:
+    // il pannello resta sempre nello stesso punto della pagina, cambia
+    // solo il contenuto.
+    function mostraTitolo(id){
+      simboloSelezionato = id;
+      render();   // ricostruisce la griglia, per evidenziare la card giusta
+
       const a = aziendaById(id);
       const profilo = profili[id];
-      idAperto = id;
 
-      $('mm-ic').innerHTML = '<i data-lucide="' + a.icona + '"></i>';
-      $('mm-nome').textContent = a.nome;
-      $('mm-tick').textContent = a.id;
-      $('mm-prezzo').textContent = prezzi[id] ? eur(prezzi[id]) : 'Prezzo non disponibile';
+      $('dt-ic').innerHTML = '<i data-lucide="' + a.icona + '"></i>';
+      $('dt-nome').textContent = a.nome;
+      $('dt-tick').textContent = a.id;
+      $('dt-prezzo').textContent = prezzi[id] ? eur(prezzi[id]) : 'Prezzo non disponibile';
 
       const righe = [];
       if(profilo && profilo.settore) righe.push(['Settore', profilo.settore]);
       if(profilo && profilo.responsabile) righe.push(['CEO', profilo.responsabile]);
       if(profilo && profilo.capitalizzazione) righe.push(['Capitalizzazione', formattaCap(profilo.capitalizzazione)]);
-      $('mm-scheda').innerHTML = righe.map(r => '<div class="mm-riga"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
-      $('mm-curiosita').textContent = (profilo && profilo.curiosita) || '';
-      $('mm-curiosita').style.display = (profilo && profilo.curiosita) ? '' : 'none';
-
-      aggiornaBottoneCompraModal();
+      $('dt-scheda').innerHTML = righe.map(r => '<div class="dt-riga"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+      $('dt-curiosita').textContent = (profilo && profilo.curiosita) || '';
 
       // Il contenitore è condiviso tra tutti i titoli: si svuota e si
       // ricrea il grafico ogni volta, per il simbolo giusto.
@@ -376,13 +356,7 @@
         container_id: 'tv-grafico',
       });
 
-      $('market-modal').classList.add('on');
       lucide.createIcons();
-    }
-
-    function chiudiDettaglio(){
-      idAperto = null;
-      $('market-modal').classList.remove('on');
     }
 
     // Mette insieme lo stato attuale nella forma che salvaStato() si aspetta.
@@ -409,15 +383,16 @@
 
       // ====== COLLEGAMENTI (solo ora che lo stato è pronto) ======
 
-      // Click su una card (o sul suo bottone): apre il pannello di dettaglio.
+      // Click su una card (o sul suo bottone): il pannello sopra passa a
+      // mostrare quel titolo, e lo scorrimento lo porta in vista (utile se
+      // hai cliccato una card più in basso nella griglia).
       $('market-grid').addEventListener('click', e => {
         const el = e.target.closest('[data-dettagli]'); if(!el) return;
-        apriDettaglio(el.dataset.dettagli);
+        mostraTitolo(el.dataset.dettagli);
+        $('dettaglio-pannello').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
 
-      // Il pannello di dettaglio: chiudi e compra.
-      $('mm-chiudi').addEventListener('click', chiudiDettaglio);
-      $('mm-compra').addEventListener('click', () => { if(!$('mm-compra').disabled) comprare(idAperto); });
+      $('dt-compra').addEventListener('click', () => { if(!$('dt-compra').disabled) comprare(simboloSelezionato); });
 
       // Click su "Vendi": un click, vendi TUTTA la posizione al prezzo di oggi.
       $('holding-grid').addEventListener('click', e => {
@@ -432,6 +407,7 @@
       });
 
       render();
+      mostraTitolo(simboloSelezionato);   // il pannello parte già mostrando il primo titolo della lista
     }
 
     avvia();

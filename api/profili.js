@@ -15,6 +15,18 @@
 //  li includa (non tutti gli endpoint lo sono). Se la richiesta fallisce
 //  o torna vuota, quel campo resta semplicemente assente: le pagine
 //  sanno già mostrare solo quello che c'è, mai un errore.
+//
+//  ⚠️ SCOPERTO IN PRODUZIONE (stesso problema di api/prezzi.js): Twelve
+//  Data accetta solo 8 "crediti" AL MINUTO sul piano gratuito. Qui ogni
+//  titolo ne costa 2 (profilo + capitalizzazione), quindi chiedere tutti
+//  e 45 insieme (90 crediti) falliva sempre con errore 429. Soluzione:
+//  ogni volta chiediamo Twelve Data solo per 4 titoli a turno (8
+//  crediti), mentre settore e curiosità (che non costano nulla, sono
+//  scritti a mano) li riscriviamo per TUTTI e 45 ad ogni chiamata, così
+//  la scheda non è mai vuota fin dal primo giorno. Per questo il nuovo
+//  orologio (.github/workflows/aggiorna-profili.yml) chiama questo file
+//  una volta AL GIORNO invece che a settimana: in circa 12 giorni si
+//  passa su tutti i titoli e si riempiono CEO e capitalizzazione.
 
 const SUPABASE_URL = 'https://liiyiquajopuqneohaus.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_EUiqgOWumfmOdlbQ6hr_gg_09kaWyEx';
@@ -69,6 +81,34 @@ const TITOLI = [
   { simbolo:'VYM', settore:'Aziende che pagano dividendi', curiosita:'VYM raccoglie le aziende che ogni anno pagano ai loro azionisti una parte dei guadagni (i "dividendi").' },
 ];
 
+// Quali 4 titoli tocca oggi (cambia ogni giorno, gira su tutti in ~12 giorni).
+const TITOLI_PER_GRUPPO = 4;
+const NUMERO_GRUPPI = Math.ceil(TITOLI.length / TITOLI_PER_GRUPPO);
+
+function gruppoDiTurno() {
+  const giorni = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+  const indice = giorni % NUMERO_GRUPPI;
+  return TITOLI.slice(indice * TITOLI_PER_GRUPPO, indice * TITOLI_PER_GRUPPO + TITOLI_PER_GRUPPO);
+}
+
+// Scrive un upsert su Supabase: righe e nomiColonne devono corrispondere
+// esattamente (stesse chiavi per ogni riga) - è quello che garantisce che
+// questa chiamata tocchi SOLO quelle colonne, senza toccare le altre già
+// scritte in precedenza da un'altra chiamata (vedi sotto perché serve).
+async function upsertProfiliTitoli(righe) {
+  const risposta = await fetch(SUPABASE_URL + '/rest/v1/profili_titoli', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Prefer': 'resolution=merge-duplicates',
+    },
+    body: JSON.stringify(righe),
+  });
+  if (!risposta.ok) throw new Error(await risposta.text());
+}
+
 export default async function handler(req, res) {
   const chiaveTwelveData = process.env.TWELVE_DATA_API_KEY;
   if (!chiaveTwelveData) {
@@ -76,65 +116,64 @@ export default async function handler(req, res) {
     return;
   }
 
-  const righe = [];
-  let trovatiExtra = 0;
-
-  for (const titolo of TITOLI) {
-    let responsabile = null;
-    let capitalizzazione = null;
-
-    // Proviamo a chiedere a Twelve Data il profilo dell'azienda (nome del
-    // CEO, o della società che gestisce il fondo). NON siamo sicuri che
-    // questo endpoint sia incluso nel piano gratuito: se fallisce o torna
-    // vuoto, va bene così, "responsabile" resta assente.
-    try {
-      const rispostaProfilo = await fetch('https://api.twelvedata.com/profile?symbol=' + titolo.simbolo + '&apikey=' + chiaveTwelveData);
-      const datiProfilo = await rispostaProfilo.json();
-      // Il nome esatto del campo (qui "CEO") va verificato con una chiave
-      // vera: se Twelve Data lo chiama diversamente, è questa la riga da
-      // correggere.
-      if (datiProfilo && datiProfilo.CEO) { responsabile = datiProfilo.CEO; trovatiExtra++; }
-    } catch (e) { /* niente responsabile per questo titolo, va bene così */ }
-
-    // Stessa idea per la capitalizzazione di mercato.
-    try {
-      const rispostaCap = await fetch('https://api.twelvedata.com/market_cap?symbol=' + titolo.simbolo + '&apikey=' + chiaveTwelveData);
-      const datiCap = await rispostaCap.json();
-      if (datiCap && datiCap.market_cap) { capitalizzazione = Number(datiCap.market_cap); }
-    } catch (e) { /* niente capitalizzazione per questo titolo, va bene così */ }
-
-    righe.push({
-      simbolo: titolo.simbolo,
-      settore: titolo.settore,
-      curiosita: titolo.curiosita,
-      responsabile: responsabile,
-      capitalizzazione: capitalizzazione,
-      aggiornato_il: new Date().toISOString(),
-    });
-  }
-
-  // Scriviamo tutte le schede in un colpo solo (stesso "upsert a mano"
-  // di api/prezzi.js: aggiorna se il simbolo esiste già, altrimenti lo crea).
   try {
-    const rispostaSupabase = await fetch(SUPABASE_URL + '/rest/v1/profili_titoli', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify(righe),
-    });
-    if (!rispostaSupabase.ok) {
-      const erroreSupabase = await rispostaSupabase.text();
-      res.status(502).json({ errore: 'Supabase non ha accettato le schede.', dettagli: erroreSupabase });
-      return;
-    }
-  } catch (e) {
-    res.status(500).json({ errore: String(e) });
-    return;
-  }
+    // 1) Settore e curiosità: scritti a mano, costano 0 crediti Twelve
+    // Data, quindi li riscriviamo per TUTTI e 45 ad ogni chiamata - così
+    // la scheda ha sempre qualcosa da mostrare fin dal primo giorno,
+    // ancora prima che il turno di quel titolo con Twelve Data arrivi.
+    await upsertProfiliTitoli(TITOLI.map(t => ({
+      simbolo: t.simbolo,
+      settore: t.settore,
+      curiosita: t.curiosita,
+      aggiornato_il: new Date().toISOString(),
+    })));
 
-  res.status(200).json({ ok: true, schedeScritte: righe.length, conResponsabileOCapitalizzazione: trovatiExtra });
+    // 2) CEO e capitalizzazione: SOLO per i 4 titoli di turno oggi (8
+    // crediti, sotto il limite di 8/minuto di Twelve Data - vedi nota in
+    // cima al file). Una chiamata a parte con SOLO queste colonne, così
+    // non tocchiamo/cancelliamo i valori già trovati nei giorni scorsi
+    // per gli altri 41 titoli.
+    const gruppo = gruppoDiTurno();
+    const righeExtra = [];
+
+    for (const titolo of gruppo) {
+      let responsabile = null;
+      let capitalizzazione = null;
+
+      // NON siamo sicuri che questi due endpoint siano nel piano gratuito:
+      // se falliscono o tornano vuoti, va bene così, il campo resta assente.
+      try {
+        const rispostaProfilo = await fetch('https://api.twelvedata.com/profile?symbol=' + titolo.simbolo + '&apikey=' + chiaveTwelveData);
+        const datiProfilo = await rispostaProfilo.json();
+        // Il nome esatto del campo (qui "CEO") va verificato con una chiave
+        // vera: se Twelve Data lo chiama diversamente, è questa la riga da
+        // correggere.
+        if (datiProfilo && datiProfilo.CEO) responsabile = datiProfilo.CEO;
+      } catch (e) { /* niente responsabile per questo titolo, va bene così */ }
+
+      try {
+        const rispostaCap = await fetch('https://api.twelvedata.com/market_cap?symbol=' + titolo.simbolo + '&apikey=' + chiaveTwelveData);
+        const datiCap = await rispostaCap.json();
+        if (datiCap && datiCap.market_cap) capitalizzazione = Number(datiCap.market_cap);
+      } catch (e) { /* niente capitalizzazione per questo titolo, va bene così */ }
+
+      // Solo se abbiamo trovato ALMENO uno dei due: altrimenti scriveremmo
+      // due "null" sopra a un valore magari già trovato ieri per errore -
+      // meglio lasciare la riga di ieri intatta che cancellarla per niente.
+      if (responsabile || capitalizzazione) {
+        righeExtra.push({ simbolo: titolo.simbolo, responsabile, capitalizzazione, aggiornato_il: new Date().toISOString() });
+      }
+    }
+
+    if (righeExtra.length > 0) await upsertProfiliTitoli(righeExtra);
+
+    res.status(200).json({
+      ok: true,
+      schedeScritte: TITOLI.length,
+      gruppoDiOggi: gruppo.map(t => t.simbolo),
+      conResponsabileOCapitalizzazione: righeExtra.length,
+    });
+  } catch (e) {
+    res.status(502).json({ errore: 'Supabase non ha accettato le schede.', dettagli: String(e && e.message || e) });
+  }
 }

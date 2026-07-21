@@ -439,6 +439,19 @@ corretto da solo al giro successivo.
 una vera chiave Twelve Data — il codice è pronto, ma non ancora
 "acceso" sul sito vero.
 
+**🧩 Difficoltà scoperta appena collegata la chiave vera.** I prezzi
+continuavano a non arrivare mai: l'orologio su GitHub falliva ad ogni giro.
+La causa: Twelve Data conta 1 "credito" per OGNI simbolo chiesto, anche
+dentro un'unica chiamata "a gruppo" come la nostra — e il piano gratuito ne
+accetta solo **8 al minuto**, un limite più severo degli 800 al giorno su
+cui avevamo ragionato leggendo la loro documentazione. Chiedere tutti e 45
+insieme sforava il limite al primo secondo. Corretto in `api/prezzi.js`:
+ogni ora si chiede solo una fetta di 8 titoli, a turno — in circa 6 ore
+passano tutti, sempre sotto il limite del minuto. La lezione: un limite "al
+giorno" scritto nella documentazione non esclude un secondo limite "al
+minuto" più severo — si scopre provando con una chiave vera, non solo
+leggendo i numeri grandi.
+
 ---
 
 ## 14. La scheda dei titoli: grafico vero e prima scheda azienda
@@ -461,9 +474,10 @@ sull'azienda, prima di comprare.
   (capitolo 13), perché questi dati cambiano lentissimamente. Stesso schema
   di `api/prezzi.js`: un nuovo "postino" gemello, `api/profili.js`, con il
   suo orologio dedicato via GitHub Actions.
-- Il pannello di dettaglio riusa lo stesso pattern del pannello "apri
-  scatola" già costruito nel profilo (capitolo 10): stessa struttura, stessa
-  sensazione di coerenza in tutto il sito.
+- La prima versione del pannello di dettaglio riusava il pattern del
+  pannello "apri scatola" già costruito nel profilo (capitolo 10): un popup
+  che si apre al click e si richiude (vedi però il cambio di struttura
+  qui sotto, deciso appena provato il sito vero).
 
 **🧩 Difficoltà — non tutti i dati sono garantiti gratis.** Non è certo che
 il piano gratuito di Twelve Data includa capitalizzazione e dirigenti (a
@@ -489,10 +503,24 @@ schiacciato accanto al nome. Corretto facendo scendere il prezzo su una riga
 propria quando lo spazio è poco - la stessa lezione "verificalo davvero nel
 browser prima di dire finito" già raccontata nei capitoli 11 e 12.
 
+**🧩 Cambiata la struttura, provando il sito vero in produzione.** Il padre
+ha aperto il sito online e ha chiesto una struttura diversa da quella
+pensata all'inizio: niente popup che si apre e si richiude — un **pannello
+unico, sempre visibile** in cima alla pagina (grafico a sinistra, scheda a
+destra), che cambia titolo quando clicchi una card del mercato più sotto
+(evidenziata mentre resta selezionata). Insieme al cambio è sparita anche
+la card grande "Liquidità disponibile" (capitolo 9): la stessa cifra è già
+sempre visibile nella barra in alto, era solo spazio ripetuto due volte.
+
 **Ancora da fare:** eseguire lo schema aggiornato su Supabase (la nuova
-tabella `profili_titoli`) e collegare la chiave Twelve Data ad
-`api/profili.js` - il codice è pronto ma non ancora "acceso" sul sito vero,
-come già successo per i prezzi nel capitolo 13.
+tabella `profili_titoli`) - il codice è pronto ma non ancora "acceso" sul
+sito vero, come già successo per i prezzi nel capitolo 13. Stesso limite di
+Twelve Data scoperto per `api/prezzi.js` (vedi sopra) ma peggiore qui
+(`api/profili.js` chiede 2 informazioni per titolo, non 1): corretto allo
+stesso modo, chiedendo solo 4 titoli al giorno a turno invece di tutti e 45
+insieme - settore e curiosità restano comunque scritti per tutti fin dal
+primo giorno, solo CEO e capitalizzazione si riempiono un po' alla volta,
+in circa 12 giorni.
 
 ---
 
