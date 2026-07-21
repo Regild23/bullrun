@@ -272,6 +272,24 @@ async function caricaPrezziMercato() {
   }
 }
 
+// Legge le schede informative dei titoli (tabella condivisa, pubblica:
+// non serve login). Usata solo dal pannello di dettaglio in azioni.html/
+// etf.html - se qualcosa va storto, elenco vuoto: quei pannelli sanno
+// già mostrare solo i campi che hanno, non è un errore che deve
+// bloccare il gioco.
+async function caricaProfiliTitoli() {
+  try {
+    const { data, error } = await sb.from('profili_titoli').select('*');
+    if (error) throw error;
+    const mappa = {};
+    for (const riga of (data || [])) mappa[riga.simbolo] = riga;
+    return mappa;
+  } catch (e) {
+    console.warn('BullRun: non riesco a leggere le schede dei titoli.', e);
+    return {};
+  }
+}
+
 // Lo stato di un giocatore "ospite" (o il ripiego se qualcosa va
 // storto): i valori di partenza, con i prezzi veri applicati se già li
 // abbiamo (altrimenti resta la stima di riserva su "capitaleIniziale").

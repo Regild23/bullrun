@@ -141,3 +141,41 @@ create policy "Tutti possono aggiungere un prezzo nuovo"
 create policy "Tutti possono aggiornare un prezzo esistente"
   on public.prezzi_mercato for update
   using (true);
+
+
+-- ============================================================
+--  BullRun · Le schede informative di ogni titolo
+-- ============================================================
+--  Anche questa tabella è condivisa (una riga per titolo, non per
+--  giocatore), aggiornata una volta a settimana da api/profili.js -
+--  molto più raramente di prezzi_mercato perché settore, chi guida
+--  l'azienda e la capitalizzazione cambiano lentissimamente, a
+--  differenza del prezzo.
+--  "responsabile" e "capitalizzazione" possono essere VUOTI: non è
+--  detto che il fornitore di dati li dia gratis, vedi api/profili.js -
+--  le pagine mostrano solo i campi che ci sono davvero.
+
+create table public.profili_titoli (
+  simbolo           text        primary key,
+  settore           text,                     -- scritto a mano, sempre presente
+  responsabile      text,                     -- CEO (azienda) o società emittente (ETF) - da Twelve Data, può mancare
+  capitalizzazione  numeric,                  -- da Twelve Data, può mancare
+  curiosita         text        not null,     -- scritta a mano, sempre presente
+  aggiornato_il     timestamptz not null default now()
+);
+
+-- Stesse regole di prezzi_mercato, stesso motivo: nessun dato personale
+-- qui dentro, solo informazioni pubbliche sui titoli.
+alter table public.profili_titoli enable row level security;
+
+create policy "Tutti possono leggere i profili"
+  on public.profili_titoli for select
+  using (true);
+
+create policy "Tutti possono aggiungere un profilo nuovo"
+  on public.profili_titoli for insert
+  with check (true);
+
+create policy "Tutti possono aggiornare un profilo esistente"
+  on public.profili_titoli for update
+  using (true);

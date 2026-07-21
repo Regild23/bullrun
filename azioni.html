@@ -69,7 +69,7 @@
     /* Mercato: aziende disponibili */
     .market-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .market { --acc: var(--br-stock); background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg);
-      padding: 16px; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+      padding: 16px; cursor: pointer; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
     .market:hover { transform: translateY(-3px); border-color: var(--br-line-strong); }
     .market__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .market__ic { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
@@ -82,12 +82,40 @@
     .market__prezzo { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--br-text); margin-bottom: 10px; }
     .market .btn { width: 100%; }
 
+    /* Pannello di dettaglio: grafico + scheda azienda, aperto cliccando una card */
+    .market-modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center;
+      background: rgba(6,8,13,.75); backdrop-filter: blur(6px); padding: 20px; }
+    .market-modal.on { display: flex; }
+    .market-modal__panel { position: relative; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+      background: var(--br-surface); border: 1px solid var(--br-line-strong); border-radius: var(--radius-xl);
+      padding: 30px 28px 28px; box-shadow: var(--shadow-lg); }
+    .market-modal__close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
+      background: var(--br-surface-2); border: 1px solid var(--br-line); color: var(--br-text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; }
+    .market-modal__close svg.lucide { width: 17px; height: 17px; }
+    .market-modal__head { display: flex; align-items: center; gap: 12px; margin: 4px 34px 18px 0; }
+    .market-modal__ic { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center;
+      justify-content: center; background: rgba(255,255,255,.05); color: var(--br-stock); flex: none; }
+    .market-modal__ic svg.lucide { width: 21px; height: 21px; }
+    .market-modal__head h3 { margin: 0; font-family: var(--font-display); font-size: 19px; color: var(--br-text); }
+    .market-modal__tick { font-family: var(--font-mono); font-size: 11.5px; color: var(--br-text-dim); }
+    .market-modal__prezzo { margin-left: auto; font-family: var(--font-mono); font-weight: 700; font-size: 20px; color: var(--br-text); }
+    .market-modal__chart { height: 300px; margin-bottom: 18px; border-radius: var(--radius-md); overflow: hidden; background: var(--br-surface-2); }
+    .mm-scheda { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+    .mm-riga { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; }
+    .mm-riga span { color: var(--br-text-dim); }
+    .mm-riga b { color: var(--br-text); font-weight: 600; text-align: right; }
+    .mm-curiosita { font-size: 13px; color: var(--br-text-muted); line-height: 1.5; padding-top: 12px; border-top: 1px solid var(--br-line); margin-bottom: 20px; }
+
     @media (max-width: 920px) { .holding-grid { grid-template-columns: 1fr 1fr; } .market-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 560px) {
       .holding-grid, .market-grid { grid-template-columns: 1fr; }
       .topbar { padding: 12px 16px; } .az-main { padding: 22px 16px 50px; }
       .liquidita-hero { flex-direction: column; align-items: flex-start; }
       .liquidita-hero__nota { text-align: left; }
+      .market-modal__chart { height: 220px; }
+      .market-modal__head { flex-wrap: wrap; }
+      .market-modal__prezzo { margin-left: 54px; width: 100%; text-align: left; font-size: 17px; }
     }
   </style>
 </head>
@@ -147,10 +175,30 @@
     </main>
   </div>
 
+  <!-- Pannello di dettaglio: grafico + scheda azienda -->
+  <div class="market-modal" id="market-modal">
+    <div class="market-modal__panel">
+      <button class="market-modal__close" id="mm-chiudi" aria-label="Chiudi"><i data-lucide="x"></i></button>
+      <div class="market-modal__head">
+        <span class="market-modal__ic" id="mm-ic"><i data-lucide="circle"></i></span>
+        <div>
+          <h3 id="mm-nome">—</h3>
+          <div class="market-modal__tick" id="mm-tick">—</div>
+        </div>
+        <div class="market-modal__prezzo" id="mm-prezzo">—</div>
+      </div>
+      <div class="market-modal__chart" id="tv-grafico"></div>
+      <div class="mm-scheda" id="mm-scheda"></div>
+      <p class="mm-curiosita" id="mm-curiosita"></p>
+      <button class="btn btn--primary btn--lg" id="mm-compra" style="width:100%;">Compra</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/stato-gioco.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const formattaNumero = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -159,47 +207,49 @@
     // ====== Le aziende del mercato (40 aziende VERE) ======
     // "id" è il ticker vero, lo stesso usato in api/prezzi.js: è la
     // chiave con cui cerchiamo il prezzo di ognuna nella mappa prezzi.
+    // "borsa" è il mercato dove è quotato il titolo, serve al grafico
+    // TradingView più sotto (vuole "borsa:ticker", es. "NASDAQ:AAPL").
     const AZIENDE = [
-      { id:'AAPL', nome:'Apple',            icona:'smartphone' },
-      { id:'MSFT', nome:'Microsoft',        icona:'monitor' },
-      { id:'GOOGL',nome:'Alphabet (Google)',icona:'search' },
-      { id:'AMZN', nome:'Amazon',           icona:'package' },
-      { id:'TSLA', nome:'Tesla',            icona:'car' },
-      { id:'NVDA', nome:'Nvidia',           icona:'cpu' },
-      { id:'META', nome:'Meta',             icona:'users' },
-      { id:'NFLX', nome:'Netflix',          icona:'clapperboard' },
-      { id:'DIS',  nome:'Disney',           icona:'sparkles' },
-      { id:'NKE',  nome:'Nike',             icona:'footprints' },
-      { id:'MCD',  nome:"McDonald's",       icona:'utensils' },
-      { id:'KO',   nome:'Coca-Cola',        icona:'cup-soda' },
-      { id:'SBUX', nome:'Starbucks',        icona:'coffee' },
-      { id:'PYPL', nome:'PayPal',           icona:'credit-card' },
-      { id:'V',    nome:'Visa',             icona:'credit-card' },
-      { id:'ADBE', nome:'Adobe',            icona:'palette' },
-      { id:'SPOT', nome:'Spotify',          icona:'music' },
-      { id:'ABNB', nome:'Airbnb',           icona:'home' },
-      { id:'UBER', nome:'Uber',             icona:'map-pin' },
-      { id:'PEP',  nome:'PepsiCo',          icona:'cup-soda' },
-      { id:'MA',   nome:'Mastercard',       icona:'credit-card' },
-      { id:'INTC', nome:'Intel',            icona:'cpu' },
-      { id:'AMD',  nome:'AMD',              icona:'cpu' },
-      { id:'RBLX', nome:'Roblox',           icona:'gamepad-2' },
-      { id:'WMT',  nome:'Walmart',          icona:'shopping-cart' },
-      { id:'TGT',  nome:'Target',           icona:'target' },
-      { id:'COST', nome:'Costco',           icona:'shopping-basket' },
-      { id:'F',    nome:'Ford',             icona:'car' },
-      { id:'BA',   nome:'Boeing',           icona:'plane' },
-      { id:'DAL',  nome:'Delta Air Lines',  icona:'plane' },
-      { id:'EBAY', nome:'eBay',             icona:'shopping-cart' },
-      { id:'SHOP', nome:'Shopify',          icona:'shopping-bag' },
-      { id:'SNAP', nome:'Snap',             icona:'camera' },
-      { id:'PINS', nome:'Pinterest',        icona:'image' },
-      { id:'ZM',   nome:'Zoom',             icona:'video' },
-      { id:'CROX', nome:'Crocs',            icona:'footprints' },
-      { id:'HAS',  nome:'Hasbro',           icona:'puzzle' },
-      { id:'MAT',  nome:'Mattel',           icona:'baby' },
-      { id:'RACE', nome:'Ferrari',          icona:'car' },
-      { id:'HOG',  nome:'Harley-Davidson',  icona:'bike' },
+      { id:'AAPL', nome:'Apple',            icona:'smartphone',   borsa:'NASDAQ' },
+      { id:'MSFT', nome:'Microsoft',        icona:'monitor',      borsa:'NASDAQ' },
+      { id:'GOOGL',nome:'Alphabet (Google)',icona:'search',       borsa:'NASDAQ' },
+      { id:'AMZN', nome:'Amazon',           icona:'package',      borsa:'NASDAQ' },
+      { id:'TSLA', nome:'Tesla',            icona:'car',          borsa:'NASDAQ' },
+      { id:'NVDA', nome:'Nvidia',           icona:'cpu',          borsa:'NASDAQ' },
+      { id:'META', nome:'Meta',             icona:'users',        borsa:'NASDAQ' },
+      { id:'NFLX', nome:'Netflix',          icona:'clapperboard', borsa:'NASDAQ' },
+      { id:'DIS',  nome:'Disney',           icona:'sparkles',     borsa:'NYSE' },
+      { id:'NKE',  nome:'Nike',             icona:'footprints',   borsa:'NYSE' },
+      { id:'MCD',  nome:"McDonald's",       icona:'utensils',     borsa:'NYSE' },
+      { id:'KO',   nome:'Coca-Cola',        icona:'cup-soda',     borsa:'NYSE' },
+      { id:'SBUX', nome:'Starbucks',        icona:'coffee',       borsa:'NASDAQ' },
+      { id:'PYPL', nome:'PayPal',           icona:'credit-card',  borsa:'NASDAQ' },
+      { id:'V',    nome:'Visa',             icona:'credit-card',  borsa:'NYSE' },
+      { id:'ADBE', nome:'Adobe',            icona:'palette',      borsa:'NASDAQ' },
+      { id:'SPOT', nome:'Spotify',          icona:'music',        borsa:'NYSE' },
+      { id:'ABNB', nome:'Airbnb',           icona:'home',         borsa:'NASDAQ' },
+      { id:'UBER', nome:'Uber',             icona:'map-pin',      borsa:'NYSE' },
+      { id:'PEP',  nome:'PepsiCo',          icona:'cup-soda',     borsa:'NASDAQ' },
+      { id:'MA',   nome:'Mastercard',       icona:'credit-card',  borsa:'NYSE' },
+      { id:'INTC', nome:'Intel',            icona:'cpu',          borsa:'NASDAQ' },
+      { id:'AMD',  nome:'AMD',              icona:'cpu',          borsa:'NASDAQ' },
+      { id:'RBLX', nome:'Roblox',           icona:'gamepad-2',    borsa:'NYSE' },
+      { id:'WMT',  nome:'Walmart',          icona:'shopping-cart',   borsa:'NYSE' },
+      { id:'TGT',  nome:'Target',           icona:'target',       borsa:'NYSE' },
+      { id:'COST', nome:'Costco',           icona:'shopping-basket', borsa:'NASDAQ' },
+      { id:'F',    nome:'Ford',             icona:'car',          borsa:'NYSE' },
+      { id:'BA',   nome:'Boeing',           icona:'plane',        borsa:'NYSE' },
+      { id:'DAL',  nome:'Delta Air Lines',  icona:'plane',        borsa:'NYSE' },
+      { id:'EBAY', nome:'eBay',             icona:'shopping-cart',   borsa:'NASDAQ' },
+      { id:'SHOP', nome:'Shopify',          icona:'shopping-bag', borsa:'NASDAQ' },
+      { id:'SNAP', nome:'Snap',             icona:'camera',       borsa:'NYSE' },
+      { id:'PINS', nome:'Pinterest',        icona:'image',        borsa:'NYSE' },
+      { id:'ZM',   nome:'Zoom',             icona:'video',        borsa:'NASDAQ' },
+      { id:'CROX', nome:'Crocs',            icona:'footprints',   borsa:'NASDAQ' },
+      { id:'HAS',  nome:'Hasbro',           icona:'puzzle',       borsa:'NASDAQ' },
+      { id:'MAT',  nome:'Mattel',           icona:'baby',         borsa:'NASDAQ' },
+      { id:'RACE', nome:'Ferrari',          icona:'car',          borsa:'NYSE' },
+      { id:'HOG',  nome:'Harley-Davidson',  icona:'bike',         borsa:'NYSE' },
     ];
     const IMPORTO_ACQUISTO = 2000; // ogni click su "Compra" investe questa cifra fissa
 
@@ -208,9 +258,19 @@
     // salvati - lo stesso "magazzino" condiviso con dashboard.html e
     // profile.html (js/stato-gioco.js). "prezzi" arriva da lì: è la
     // mappa {ticker: prezzo} letta dalla tabella prezzi_mercato.
-    let statoCompleto, liquidita, portafoglio, prezzi;
+    let statoCompleto, liquidita, portafoglio, prezzi, profili;
+    let idAperto = null;   // ticker aperto nel pannello di dettaglio, o null se chiuso
 
     function aziendaById(id){ return AZIENDE.find(a => a.id === id); }
+
+    // La capitalizzazione è sempre un numero enorme (miliardi): la
+    // scriviamo abbreviata, tipo "€ 3,45 Mrd", molto più leggibile
+    // (eur() da solo arrotonderebbe via i decimali che qui servono).
+    function formattaCap(n){
+      if(n >= 1e9) return '€ ' + (n/1e9).toFixed(2).replace('.', ',') + ' Mrd';
+      if(n >= 1e6) return '€ ' + (n/1e6).toFixed(0) + ' Mln';
+      return eur(n);
+    }
 
     function render(){
       $('tb-cash').textContent = eur(liquidita);
@@ -235,21 +295,94 @@
         }).join('');
       }
 
-      // Mercato: se il prezzo non è ancora arrivato (il proxy non ha
-      // ancora girato), il bottone "Compra" si disabilita con una nota,
-      // invece di rompersi o comprare a un prezzo sbagliato.
+      // Mercato: clic sulla card (o sul bottone) apre il pannello con
+      // grafico e scheda azienda - "Compra" vero e proprio è lì dentro.
       $('market-grid').innerHTML = AZIENDE.map(a => {
         const prezzo = prezzi[a.id];
-        return '<div class="market" style="--acc:var(--br-stock)">'
+        return '<div class="market" data-dettagli="' + a.id + '" style="--acc:var(--br-stock)">'
           + '<div class="market__top"><span class="market__ic"><i data-lucide="' + a.icona + '"></i></span></div>'
           + '<div class="market__nome">' + a.nome + '</div>'
           + '<div class="market__tick">' + a.id + '</div>'
           + '<div class="market__prezzo">' + (prezzo ? eur(prezzo) : 'Prezzo non disponibile') + '</div>'
-          + '<button class="btn btn--primary" data-compra="' + a.id + '"' + (prezzo ? '' : ' disabled') + '>Compra · ' + eur(IMPORTO_ACQUISTO) + '</button>'
+          + '<button class="btn btn--primary" data-dettagli="' + a.id + '">Scopri di più</button>'
           + '</div>';
       }).join('');
 
       lucide.createIcons();
+
+      // Se il pannello di dettaglio è aperto, il bottone "Compra" dentro
+      // deve restare coerente con la liquidità appena aggiornata.
+      aggiornaBottoneCompraModal();
+    }
+
+    // Comprare, che sia dal pannello di dettaglio: importo fisso, quantità
+    // comprata = importo / prezzo di oggi.
+    function comprare(id){
+      const prezzo = prezzi[id];
+      if(!prezzo || liquidita < IMPORTO_ACQUISTO) return; // prezzo mancante o non abbastanza liquidità
+      const quantitaComprata = IMPORTO_ACQUISTO / prezzo;
+      liquidita -= IMPORTO_ACQUISTO;
+      if(portafoglio[id]) portafoglio[id].quantita += quantitaComprata;
+      else portafoglio[id] = { quantita: quantitaComprata };
+      render();
+      salvaStato(statoCorrente());
+    }
+
+    // Tiene il bottone "Compra" del pannello coerente con prezzo/liquidità
+    // di oggi - anche se il pannello resta aperto dopo un acquisto.
+    function aggiornaBottoneCompraModal(){
+      if(!idAperto) return;
+      const prezzo = prezzi[idAperto];
+      const btn = $('mm-compra');
+      btn.disabled = !prezzo || liquidita < IMPORTO_ACQUISTO;
+      btn.textContent = 'Compra · ' + eur(IMPORTO_ACQUISTO);
+    }
+
+    // Apre il pannello di dettaglio: nome/prezzo, il grafico TradingView
+    // (storico vero, nessuna chiave API nostra) e la scheda azienda coi
+    // soli campi che ci sono davvero (vedi api/profili.js).
+    function apriDettaglio(id){
+      const a = aziendaById(id);
+      const profilo = profili[id];
+      idAperto = id;
+
+      $('mm-ic').innerHTML = '<i data-lucide="' + a.icona + '"></i>';
+      $('mm-nome').textContent = a.nome;
+      $('mm-tick').textContent = a.id;
+      $('mm-prezzo').textContent = prezzi[id] ? eur(prezzi[id]) : 'Prezzo non disponibile';
+
+      const righe = [];
+      if(profilo && profilo.settore) righe.push(['Settore', profilo.settore]);
+      if(profilo && profilo.responsabile) righe.push(['CEO', profilo.responsabile]);
+      if(profilo && profilo.capitalizzazione) righe.push(['Capitalizzazione', formattaCap(profilo.capitalizzazione)]);
+      $('mm-scheda').innerHTML = righe.map(r => '<div class="mm-riga"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+      $('mm-curiosita').textContent = (profilo && profilo.curiosita) || '';
+      $('mm-curiosita').style.display = (profilo && profilo.curiosita) ? '' : 'none';
+
+      aggiornaBottoneCompraModal();
+
+      // Il contenitore è condiviso tra tutti i titoli: si svuota e si
+      // ricrea il grafico ogni volta, per il simbolo giusto.
+      $('tv-grafico').innerHTML = '';
+      new TradingView.widget({
+        autosize: true,
+        symbol: a.borsa + ':' + a.id,
+        interval: 'D', timezone: 'Etc/UTC',
+        theme: 'dark', style: '1', locale: 'it',
+        toolbar_bg: '#131B28',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        hide_top_toolbar: true,
+        container_id: 'tv-grafico',
+      });
+
+      $('market-modal').classList.add('on');
+      lucide.createIcons();
+    }
+
+    function chiudiDettaglio(){
+      idAperto = null;
+      $('market-modal').classList.remove('on');
     }
 
     // Mette insieme lo stato attuale nella forma che salvaStato() si aspetta.
@@ -261,7 +394,7 @@
 
     // ====== AVVIO: carica i progressi salvati, poi collega tutto ======
     async function avvia() {
-      statoCompleto = await caricaStato();
+      [statoCompleto, profili] = await Promise.all([caricaStato(), caricaProfiliTitoli()]);
       liquidita = statoCompleto.cash;
       portafoglio = statoCompleto.azioni;
       prezzi = statoCompleto.prezziMercato;
@@ -276,19 +409,15 @@
 
       // ====== COLLEGAMENTI (solo ora che lo stato è pronto) ======
 
-      // Click su "Compra": importo fisso, quantità comprata = importo / prezzo di oggi.
+      // Click su una card (o sul suo bottone): apre il pannello di dettaglio.
       $('market-grid').addEventListener('click', e => {
-        const btn = e.target.closest('[data-compra]'); if(!btn || btn.disabled) return;
-        const id = btn.dataset.compra;
-        const prezzo = prezzi[id];
-        if(!prezzo || liquidita < IMPORTO_ACQUISTO) return; // prezzo mancante o non abbastanza liquidità
-        const quantitaComprata = IMPORTO_ACQUISTO / prezzo;
-        liquidita -= IMPORTO_ACQUISTO;
-        if(portafoglio[id]) portafoglio[id].quantita += quantitaComprata;
-        else portafoglio[id] = { quantita: quantitaComprata };
-        render();
-        salvaStato(statoCorrente());
+        const el = e.target.closest('[data-dettagli]'); if(!el) return;
+        apriDettaglio(el.dataset.dettagli);
       });
+
+      // Il pannello di dettaglio: chiudi e compra.
+      $('mm-chiudi').addEventListener('click', chiudiDettaglio);
+      $('mm-compra').addEventListener('click', () => { if(!$('mm-compra').disabled) comprare(idAperto); });
 
       // Click su "Vendi": un click, vendi TUTTA la posizione al prezzo di oggi.
       $('holding-grid').addEventListener('click', e => {

@@ -1,0 +1,20 @@
+# ============================================================
+#  BullRun · L'"orologio" che aggiorna le schede dei titoli
+# ============================================================
+#  Gemello di aggiorna-prezzi.yml, ma molto meno frequente: settore,
+#  chi guida l'azienda e la capitalizzazione cambiano lentissimamente,
+#  a differenza del prezzo - una volta a settimana basta e avanza.
+
+name: Aggiorna le schede dei titoli
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # ogni lunedì alle 6:00 UTC
+  workflow_dispatch: {}     # permette anche di farlo partire a mano da GitHub
+
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chiama api/profili
+        run: curl --fail https://bullrun.infomaat.it/api/profili

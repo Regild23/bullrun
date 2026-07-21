@@ -29,8 +29,9 @@ portafoglio virtuale da 100.000€, senza rischiare un euro vero.
 11. [Il salvataggio vero: il gioco si ricorda di te](#11-il-salvataggio-vero-il-gioco-si-ricorda-di-te)
 12. [Il tempo di gioco diventa tempo reale](#12-il-tempo-di-gioco-diventa-tempo-reale)
 13. [Prezzi veri per Azioni ed ETF](#13-prezzi-veri-per-azioni-ed-etf)
-14. [Stack tecnico in breve](#14-stack-tecnico-in-breve)
-15. [Cosa manca ancora (roadmap)](#15-cosa-manca-ancora-roadmap)
+14. [La scheda dei titoli: grafico vero e prima scheda azienda](#14-la-scheda-dei-titoli-grafico-vero-e-prima-scheda-azienda)
+15. [Stack tecnico in breve](#15-stack-tecnico-in-breve)
+16. [Cosa manca ancora (roadmap)](#16-cosa-manca-ancora-roadmap)
 
 ---
 
@@ -440,7 +441,62 @@ una vera chiave Twelve Data — il codice è pronto, ma non ancora
 
 ---
 
-## 14. Stack tecnico in breve
+## 14. La scheda dei titoli: grafico vero e prima scheda azienda
+
+**Obiettivo:** in `azioni.html`/`etf.html` (capitolo 13) una card del mercato
+mostrava solo nome, prezzo e un bottone "Compra" - clic diretto, senza sapere
+altro sull'azienda. L'idea: "scopri, poi decidi" - cliccando un titolo si apre
+un pannello con il grafico del suo andamento e qualche informazione vera
+sull'azienda, prima di comprare.
+
+**Cosa abbiamo costruito:**
+- Il grafico: niente storico nostro da costruire (all'inizio avrebbe mostrato
+  solo poche ore/giorni). Incorporato invece il widget gratuito di
+  **TradingView** ("Advanced Chart"): nessuna chiave API nostra, grafico a
+  candele vero con tutta la storia reale del titolo, tema scuro che si intona
+  da solo allo stile del sito.
+- Una nuova tabella condivisa, `profili_titoli` (settore, chi guida
+  l'azienda, capitalizzazione, una curiosità scritta a mano per ognuno dei 45
+  titoli), aggiornata una volta a settimana - molto più raramente dei prezzi
+  (capitolo 13), perché questi dati cambiano lentissimamente. Stesso schema
+  di `api/prezzi.js`: un nuovo "postino" gemello, `api/profili.js`, con il
+  suo orologio dedicato via GitHub Actions.
+- Il pannello di dettaglio riusa lo stesso pattern del pannello "apri
+  scatola" già costruito nel profilo (capitolo 10): stessa struttura, stessa
+  sensazione di coerenza in tutto il sito.
+
+**🧩 Difficoltà — non tutti i dati sono garantiti gratis.** Non è certo che
+il piano gratuito di Twelve Data includa capitalizzazione e dirigenti (a
+differenza del prezzo, capitolo 13): segnali contrastanti cercando online.
+Invece di bloccare tutto in attesa di certezze, `api/profili.js` è scritto
+per gestire bene anche il "non ce l'ho": se una chiamata fallisce o torna
+vuota, quel campo resta assente e la scheda mostra solo quello che ha
+davvero - mai un errore, esattamente come già succede con "Prezzo non
+disponibile".
+
+**🧩 Difficoltà — un ticker da solo non basta a TradingView.** Il widget
+vuole sapere anche la borsa dove è quotato ogni titolo ("NASDAQ:AAPL", non
+solo "AAPL"). Per la maggior parte dei 45 titoli non è stato un problema, ma
+qualche caso era meno scontato - Shopify, per esempio, è passata da NYSE a
+Nasdaq solo a marzo 2025, e Ferrari è quotata sia a Milano che a New York.
+Verificati uno per uno invece di indovinare, per non rischiare un grafico che
+non carica.
+
+**🧩 Difficoltà scoperta testando, non a occhio.** Il pannello, provato nel
+browser, si è rivelato un po' stretto per i nomi di fondo più lunghi
+("Vanguard mercati internazionali"): su schermo piccolo il prezzo finiva
+schiacciato accanto al nome. Corretto facendo scendere il prezzo su una riga
+propria quando lo spazio è poco - la stessa lezione "verificalo davvero nel
+browser prima di dire finito" già raccontata nei capitoli 11 e 12.
+
+**Ancora da fare:** eseguire lo schema aggiornato su Supabase (la nuova
+tabella `profili_titoli`) e collegare la chiave Twelve Data ad
+`api/profili.js` - il codice è pronto ma non ancora "acceso" sul sito vero,
+come già successo per i prezzi nel capitolo 13.
+
+---
+
+## 15. Stack tecnico in breve
 
 | Livello | Tecnologia | Perché |
 |---|---|---|
@@ -466,7 +522,7 @@ una vera chiave Twelve Data — il codice è pronto, ma non ancora
 
 ---
 
-## 15. Cosa manca ancora (roadmap)
+## 16. Cosa manca ancora (roadmap)
 
 Essere onesti su cosa è "vero" e cosa è ancora una base da completare è
 importante — anche questo si può raccontare in una slide ("il progetto continua"):
@@ -493,6 +549,12 @@ importante — anche questo si può raccontare in una slide ("il progetto contin
 - 🔶 **Dashboard diverse per ogni asset** — Azioni ed ETF hanno già la loro
   schermata dedicata (capitoli 9 e 13). Mancano ancora Crypto, BTP e
   Immobili, che per ora portano alla dashboard generale.
+- 🔶 **Grafico e scheda per ogni titolo** — fatto (capitolo 14): pannello con
+  grafico TradingView vero e scheda azienda per Azioni ed ETF. Manca lo
+  stesso ultimo passo pratico del salvataggio (capitolo 11) e dei prezzi
+  (capitolo 13): eseguire lo schema su Supabase e collegare la chiave
+  Twelve Data, prima che capitalizzazione e dirigenti siano davvero visibili
+  (la curiosità scritta a mano, invece, c'è già).
 - 🔶 **Eventi di mercato collegati a qualcosa di vero** — fatto per Azioni
   ed ETF (capitolo 13): i loro prezzi arrivano da un fornitore di dati
   vero, aggiornato ogni ora. Le 5 "notizie" inventate (capitolo 9) restano

@@ -70,7 +70,7 @@
     /* Mercato: fondi disponibili */
     .market-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .market { --acc: var(--br-etf); background: var(--br-surface); border: 1px solid var(--br-line); border-radius: var(--radius-lg);
-      padding: 16px; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+      padding: 16px; cursor: pointer; transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
     .market:hover { transform: translateY(-3px); border-color: var(--br-line-strong); }
     .market__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .market__ic { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
@@ -83,12 +83,40 @@
     .market__prezzo { font-family: var(--font-mono); font-weight: 700; font-size: 16px; color: var(--br-text); margin-bottom: 10px; }
     .market .btn { width: 100%; }
 
+    /* Pannello di dettaglio: grafico + scheda del fondo, aperto cliccando una card */
+    .market-modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center;
+      background: rgba(6,8,13,.75); backdrop-filter: blur(6px); padding: 20px; }
+    .market-modal.on { display: flex; }
+    .market-modal__panel { position: relative; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+      background: var(--br-surface); border: 1px solid var(--br-line-strong); border-radius: var(--radius-xl);
+      padding: 30px 28px 28px; box-shadow: var(--shadow-lg); }
+    .market-modal__close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
+      background: var(--br-surface-2); border: 1px solid var(--br-line); color: var(--br-text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; }
+    .market-modal__close svg.lucide { width: 17px; height: 17px; }
+    .market-modal__head { display: flex; align-items: center; gap: 12px; margin: 4px 34px 18px 0; }
+    .market-modal__ic { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center;
+      justify-content: center; background: rgba(255,255,255,.05); color: var(--br-etf); flex: none; }
+    .market-modal__ic svg.lucide { width: 21px; height: 21px; }
+    .market-modal__head h3 { margin: 0; font-family: var(--font-display); font-size: 19px; color: var(--br-text); }
+    .market-modal__tick { font-family: var(--font-mono); font-size: 11.5px; color: var(--br-text-dim); }
+    .market-modal__prezzo { margin-left: auto; font-family: var(--font-mono); font-weight: 700; font-size: 20px; color: var(--br-text); }
+    .market-modal__chart { height: 300px; margin-bottom: 18px; border-radius: var(--radius-md); overflow: hidden; background: var(--br-surface-2); }
+    .mm-scheda { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+    .mm-riga { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; }
+    .mm-riga span { color: var(--br-text-dim); }
+    .mm-riga b { color: var(--br-text); font-weight: 600; text-align: right; }
+    .mm-curiosita { font-size: 13px; color: var(--br-text-muted); line-height: 1.5; padding-top: 12px; border-top: 1px solid var(--br-line); margin-bottom: 20px; }
+
     @media (max-width: 920px) { .holding-grid { grid-template-columns: 1fr 1fr; } .market-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 560px) {
       .holding-grid, .market-grid { grid-template-columns: 1fr; }
       .topbar { padding: 12px 16px; } .az-main { padding: 22px 16px 50px; }
       .liquidita-hero { flex-direction: column; align-items: flex-start; }
       .liquidita-hero__nota { text-align: left; }
+      .market-modal__chart { height: 220px; }
+      .market-modal__head { flex-wrap: wrap; }
+      .market-modal__prezzo { margin-left: 54px; width: 100%; text-align: left; font-size: 17px; }
     }
   </style>
 </head>
@@ -148,10 +176,30 @@
     </main>
   </div>
 
+  <!-- Pannello di dettaglio: grafico + scheda del fondo -->
+  <div class="market-modal" id="market-modal">
+    <div class="market-modal__panel">
+      <button class="market-modal__close" id="mm-chiudi" aria-label="Chiudi"><i data-lucide="x"></i></button>
+      <div class="market-modal__head">
+        <span class="market-modal__ic" id="mm-ic"><i data-lucide="circle"></i></span>
+        <div>
+          <h3 id="mm-nome">—</h3>
+          <div class="market-modal__tick" id="mm-tick">—</div>
+        </div>
+        <div class="market-modal__prezzo" id="mm-prezzo">—</div>
+      </div>
+      <div class="market-modal__chart" id="tv-grafico"></div>
+      <div class="mm-scheda" id="mm-scheda"></div>
+      <p class="mm-curiosita" id="mm-curiosita"></p>
+      <button class="btn btn--primary btn--lg" id="mm-compra" style="width:100%;">Compra</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/stato-gioco.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
   <script>
     const $ = id => document.getElementById(id);
     const formattaNumero = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -162,12 +210,14 @@
     // chiave con cui cerchiamo il prezzo di ognuno nella mappa prezzi.
     // Niente ETF obbligazionari qui apposta: si sovrapporrebbero troppo
     // all'asset "BTP", già un fondo diverso nel gioco.
+    // "borsa" è il mercato dove è quotato il fondo, serve al grafico
+    // TradingView più sotto (vuole "borsa:ticker", es. "AMEX:SPY").
     const ETF = [
-      { id:'SPY',  nome:'SPDR S&P 500',                icona:'bar-chart-3' },
-      { id:'QQQ',  nome:'Invesco QQQ (Nasdaq 100)',     icona:'cpu' },
-      { id:'VXUS', nome:'Vanguard mercati internazionali', icona:'globe' },
-      { id:'IWM',  nome:'iShares Russell 2000 (piccole aziende)', icona:'sprout' },
-      { id:'VYM',  nome:'Vanguard alti dividendi',      icona:'piggy-bank' },
+      { id:'SPY',  nome:'SPDR S&P 500',                icona:'bar-chart-3', borsa:'AMEX' },
+      { id:'QQQ',  nome:'Invesco QQQ (Nasdaq 100)',     icona:'cpu',         borsa:'NASDAQ' },
+      { id:'VXUS', nome:'Vanguard mercati internazionali', icona:'globe',    borsa:'NASDAQ' },
+      { id:'IWM',  nome:'iShares Russell 2000 (piccole aziende)', icona:'sprout', borsa:'AMEX' },
+      { id:'VYM',  nome:'Vanguard alti dividendi',      icona:'piggy-bank', borsa:'AMEX' },
     ];
     const IMPORTO_ACQUISTO = 2000; // ogni click su "Compra" investe questa cifra fissa
 
@@ -176,9 +226,19 @@
     // salvati - lo stesso "magazzino" condiviso con dashboard.html e
     // azioni.html (js/stato-gioco.js). "prezzi" arriva da lì: è la
     // mappa {ticker: prezzo} letta dalla tabella prezzi_mercato.
-    let statoCompleto, liquidita, portafoglio, prezzi;
+    let statoCompleto, liquidita, portafoglio, prezzi, profili;
+    let idAperto = null;   // ticker aperto nel pannello di dettaglio, o null se chiuso
 
     function fondoById(id){ return ETF.find(a => a.id === id); }
+
+    // La capitalizzazione è sempre un numero enorme (miliardi): la
+    // scriviamo abbreviata, tipo "€ 3,45 Mrd", molto più leggibile
+    // (eur() da solo arrotonderebbe via i decimali che qui servono).
+    function formattaCap(n){
+      if(n >= 1e9) return '€ ' + (n/1e9).toFixed(2).replace('.', ',') + ' Mrd';
+      if(n >= 1e6) return '€ ' + (n/1e6).toFixed(0) + ' Mln';
+      return eur(n);
+    }
 
     function render(){
       $('tb-cash').textContent = eur(liquidita);
@@ -203,21 +263,94 @@
         }).join('');
       }
 
-      // Mercato: se il prezzo non è ancora arrivato (il proxy non ha
-      // ancora girato), il bottone "Compra" si disabilita con una nota,
-      // invece di rompersi o comprare a un prezzo sbagliato.
+      // Mercato: clic sulla card (o sul bottone) apre il pannello con
+      // grafico e scheda del fondo - "Compra" vero e proprio è lì dentro.
       $('market-grid').innerHTML = ETF.map(a => {
         const prezzo = prezzi[a.id];
-        return '<div class="market" style="--acc:var(--br-etf)">'
+        return '<div class="market" data-dettagli="' + a.id + '" style="--acc:var(--br-etf)">'
           + '<div class="market__top"><span class="market__ic"><i data-lucide="' + a.icona + '"></i></span></div>'
           + '<div class="market__nome">' + a.nome + '</div>'
           + '<div class="market__tick">' + a.id + '</div>'
           + '<div class="market__prezzo">' + (prezzo ? eur(prezzo) : 'Prezzo non disponibile') + '</div>'
-          + '<button class="btn btn--primary" data-compra="' + a.id + '"' + (prezzo ? '' : ' disabled') + '>Compra · ' + eur(IMPORTO_ACQUISTO) + '</button>'
+          + '<button class="btn btn--primary" data-dettagli="' + a.id + '">Scopri di più</button>'
           + '</div>';
       }).join('');
 
       lucide.createIcons();
+
+      // Se il pannello di dettaglio è aperto, il bottone "Compra" dentro
+      // deve restare coerente con la liquidità appena aggiornata.
+      aggiornaBottoneCompraModal();
+    }
+
+    // Comprare, che sia dal pannello di dettaglio: importo fisso, quantità
+    // comprata = importo / prezzo di oggi.
+    function comprare(id){
+      const prezzo = prezzi[id];
+      if(!prezzo || liquidita < IMPORTO_ACQUISTO) return; // prezzo mancante o non abbastanza liquidità
+      const quantitaComprata = IMPORTO_ACQUISTO / prezzo;
+      liquidita -= IMPORTO_ACQUISTO;
+      if(portafoglio[id]) portafoglio[id].quantita += quantitaComprata;
+      else portafoglio[id] = { quantita: quantitaComprata };
+      render();
+      salvaStato(statoCorrente());
+    }
+
+    // Tiene il bottone "Compra" del pannello coerente con prezzo/liquidità
+    // di oggi - anche se il pannello resta aperto dopo un acquisto.
+    function aggiornaBottoneCompraModal(){
+      if(!idAperto) return;
+      const prezzo = prezzi[idAperto];
+      const btn = $('mm-compra');
+      btn.disabled = !prezzo || liquidita < IMPORTO_ACQUISTO;
+      btn.textContent = 'Compra · ' + eur(IMPORTO_ACQUISTO);
+    }
+
+    // Apre il pannello di dettaglio: nome/prezzo, il grafico TradingView
+    // (storico vero, nessuna chiave API nostra) e la scheda del fondo coi
+    // soli campi che ci sono davvero (vedi api/profili.js).
+    function apriDettaglio(id){
+      const a = fondoById(id);
+      const profilo = profili[id];
+      idAperto = id;
+
+      $('mm-ic').innerHTML = '<i data-lucide="' + a.icona + '"></i>';
+      $('mm-nome').textContent = a.nome;
+      $('mm-tick').textContent = a.id;
+      $('mm-prezzo').textContent = prezzi[id] ? eur(prezzi[id]) : 'Prezzo non disponibile';
+
+      const righe = [];
+      if(profilo && profilo.settore) righe.push(['Categoria', profilo.settore]);
+      if(profilo && profilo.responsabile) righe.push(['Società emittente', profilo.responsabile]);
+      if(profilo && profilo.capitalizzazione) righe.push(['Patrimonio gestito', formattaCap(profilo.capitalizzazione)]);
+      $('mm-scheda').innerHTML = righe.map(r => '<div class="mm-riga"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+      $('mm-curiosita').textContent = (profilo && profilo.curiosita) || '';
+      $('mm-curiosita').style.display = (profilo && profilo.curiosita) ? '' : 'none';
+
+      aggiornaBottoneCompraModal();
+
+      // Il contenitore è condiviso tra tutti i titoli: si svuota e si
+      // ricrea il grafico ogni volta, per il simbolo giusto.
+      $('tv-grafico').innerHTML = '';
+      new TradingView.widget({
+        autosize: true,
+        symbol: a.borsa + ':' + a.id,
+        interval: 'D', timezone: 'Etc/UTC',
+        theme: 'dark', style: '1', locale: 'it',
+        toolbar_bg: '#131B28',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        hide_top_toolbar: true,
+        container_id: 'tv-grafico',
+      });
+
+      $('market-modal').classList.add('on');
+      lucide.createIcons();
+    }
+
+    function chiudiDettaglio(){
+      idAperto = null;
+      $('market-modal').classList.remove('on');
     }
 
     // Mette insieme lo stato attuale nella forma che salvaStato() si aspetta.
@@ -229,7 +362,7 @@
 
     // ====== AVVIO: carica i progressi salvati, poi collega tutto ======
     async function avvia() {
-      statoCompleto = await caricaStato();
+      [statoCompleto, profili] = await Promise.all([caricaStato(), caricaProfiliTitoli()]);
       liquidita = statoCompleto.cash;
       portafoglio = statoCompleto.etf;
       prezzi = statoCompleto.prezziMercato;
@@ -244,19 +377,15 @@
 
       // ====== COLLEGAMENTI (solo ora che lo stato è pronto) ======
 
-      // Click su "Compra": importo fisso, quantità comprata = importo / prezzo di oggi.
+      // Click su una card (o sul suo bottone): apre il pannello di dettaglio.
       $('market-grid').addEventListener('click', e => {
-        const btn = e.target.closest('[data-compra]'); if(!btn || btn.disabled) return;
-        const id = btn.dataset.compra;
-        const prezzo = prezzi[id];
-        if(!prezzo || liquidita < IMPORTO_ACQUISTO) return; // prezzo mancante o non abbastanza liquidità
-        const quantitaComprata = IMPORTO_ACQUISTO / prezzo;
-        liquidita -= IMPORTO_ACQUISTO;
-        if(portafoglio[id]) portafoglio[id].quantita += quantitaComprata;
-        else portafoglio[id] = { quantita: quantitaComprata };
-        render();
-        salvaStato(statoCorrente());
+        const el = e.target.closest('[data-dettagli]'); if(!el) return;
+        apriDettaglio(el.dataset.dettagli);
       });
+
+      // Il pannello di dettaglio: chiudi e compra.
+      $('mm-chiudi').addEventListener('click', chiudiDettaglio);
+      $('mm-compra').addEventListener('click', () => { if(!$('mm-compra').disabled) comprare(idAperto); });
 
       // Click su "Vendi": un click, vendi TUTTA la posizione al prezzo di oggi.
       $('holding-grid').addEventListener('click', e => {
