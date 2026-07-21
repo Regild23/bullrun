@@ -87,6 +87,9 @@
     .dettaglio__body { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
     .dettaglio__chart { height: 360px; border-radius: var(--radius-md); overflow: hidden; background: var(--br-surface-2); }
     .dettaglio__info .btn { width: 100%; margin-bottom: 16px; }
+    .dt-concetto { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--br-line); }
+    .dt-concetto__lab { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--br-text-dim); margin-bottom: 6px; }
+    .dt-concetto__testo { font-size: 13.5px; color: var(--br-text-muted); line-height: 1.55; margin: 0; }
     .dt-scheda { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
     .dt-riga { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; }
     .dt-riga span { color: var(--br-text-dim); }
@@ -146,6 +149,10 @@
           <div class="dettaglio__chart" id="tv-grafico"></div>
           <div class="dettaglio__info">
             <button class="btn btn--primary" id="dt-compra">Compra</button>
+            <div class="dt-concetto">
+              <div class="dt-concetto__lab">Cos'è un'azione?</div>
+              <p class="dt-concetto__testo">Compri un pezzo di UNA sola azienda vera: se quell'azienda va bene, il tuo pezzetto vale di più — se inciampa, vale di meno, più in fretta di un ETF (qui non sei diversificato, e si sente).</p>
+            </div>
             <div class="dt-scheda" id="dt-scheda"></div>
             <p class="dt-curiosita" id="dt-curiosita"></p>
           </div>
