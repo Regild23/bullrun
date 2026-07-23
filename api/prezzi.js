@@ -47,8 +47,12 @@ const SIMBOLI = [
 const SIMBOLI_PER_GRUPPO = 8;
 const NUMERO_GRUPPI = Math.ceil(SIMBOLI.length / SIMBOLI_PER_GRUPPO);
 
-function gruppoDiTurno() {
-  const indice = new Date().getUTCHours() % NUMERO_GRUPPI;
+// "forzaGruppo" è solo per collaudo a mano da browser/curl (es.
+// ?gruppo=2, per rivedere subito un gruppo senza aspettare il suo
+// turno vero) - l'orologio automatico non lo passa mai, quindi in
+// produzione si comporta sempre come prima.
+function gruppoDiTurno(forzaGruppo) {
+  const indice = forzaGruppo !== undefined ? forzaGruppo : new Date().getUTCHours() % NUMERO_GRUPPI;
   return SIMBOLI.slice(indice * SIMBOLI_PER_GRUPPO, indice * SIMBOLI_PER_GRUPPO + SIMBOLI_PER_GRUPPO);
 }
 
@@ -59,7 +63,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const gruppo = gruppoDiTurno();
+  const gruppoForzato = req.query && req.query.gruppo !== undefined ? Number(req.query.gruppo) : undefined;
+  const gruppo = gruppoDiTurno(gruppoForzato);
 
   try {
     // Un'unica chiamata "a gruppo" per gli 8 simboli di turno, invece di
