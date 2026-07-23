@@ -65,21 +65,16 @@ export default async function handler(req, res) {
 
   const gruppoForzato = req.query && req.query.gruppo !== undefined ? Number(req.query.gruppo) : undefined;
   const gruppo = gruppoDiTurno(gruppoForzato);
+  const aspetta = ms => new Promise(risolvi => setTimeout(risolvi, ms));
 
-  try {
-    // Un'unica chiamata "a gruppo" per gli 8 simboli di turno, invece di
-    // una chiamata per ognuno: risparmia sul numero di richieste, anche
-    // se il costo in crediti resta 1 per simbolo (vedi nota sopra).
+  // Chiede a Twelve Data i prezzi del gruppo, e li trasforma nelle righe
+  // pronte per Supabase. Con un solo simbolo Twelve Data risponde
+  // {"price": "..."}. Con più simboli, un oggetto con una chiave per
+  // simbolo, es: {"AAPL": {"price": "150.23"}, "MSFT": {"price": "310.12"}, ...}
+  async function chiediPrezzi() {
     const urlTwelveData = 'https://api.twelvedata.com/price?symbol=' + gruppo.join(',') + '&apikey=' + chiaveTwelveData;
     const rispostaTD = await fetch(urlTwelveData);
     const datiTD = await rispostaTD.json();
-
-    // Con un solo simbolo Twelve Data risponde {"price": "..."}. Con
-    // più simboli, un oggetto con una chiave per simbolo, es:
-    // {"AAPL": {"price": "150.23"}, "MSFT": {"price": "310.12"}, ...}
-    // La prima volta che si prova con una chiave vera, controllare che
-    // la forma della risposta sia davvero questa: è la riga giusta da
-    // correggere se Twelve Data rispondesse in modo diverso.
     const righe = gruppo
       .filter(simbolo => datiTD[simbolo] && datiTD[simbolo].price)
       .map(simbolo => ({
@@ -87,9 +82,26 @@ export default async function handler(req, res) {
         prezzo: Number(datiTD[simbolo].price),
         aggiornato_il: new Date().toISOString(),
       }));
+    return { righe, datiTD };
+  }
+
+  try {
+    let { righe, datiTD } = await chiediPrezzi();
+
+    // ⚠️ SCOPERTO IN PRODUZIONE: un intero gruppo può tornare vuoto ogni
+    // tanto (probabile sovraccarico di Twelve Data proprio negli istanti
+    // tondi, es. le 8:00/14:00/20:00 UTC, quando tanti altri servizi
+    // chiedono dati tutti insieme) - capitato per due giorni di fila
+    // sempre allo stesso gruppo, risolto da solo ritentando pochi minuti
+    // dopo. Un secondo tentativo, dopo una breve pausa, evita di aspettare
+    // fino a 6 ore il turno successivo per un problema che si risolve da solo.
+    if (righe.length === 0) {
+      await aspetta(2500);
+      ({ righe, datiTD } = await chiediPrezzi());
+    }
 
     if (righe.length === 0) {
-      res.status(502).json({ errore: 'Nessun prezzo valido ricevuto da Twelve Data.', dettagli: datiTD });
+      res.status(502).json({ errore: 'Nessun prezzo valido ricevuto da Twelve Data (anche dopo un ritentativo).', dettagli: datiTD });
       return;
     }
 
